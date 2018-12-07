@@ -2,6 +2,7 @@
 A simple, lightweight transportation plugin for MineCraft.  No powered rails required!  [Download It Now!](https://github.com/seanboyy/SmartCart/releases/download/0.2.0/SmartCart.jar)
 
 ## Control Blocks
+These are all configurable. Default values are:
 - Black Wool (spawn - use adjacent button)
 - Yellow Wool (destroy)
 - Green Wool (intersection)
@@ -60,6 +61,11 @@ The following config.yml options are available:
 | slow_cart_speed | 0.1 | Adjust to change the speed when traveling over slowing blocks |
 | pickup_radius | 3 | How many blocks away a freshly spawned cart will look for a player to grab |
 | control_sign_prefix_regex | "\\s+SC: " | A sign with text matching this regex will be considered a control sign |
+| elevator_block_material | "RED_WOOL" | A block with this material will be treated as an elevator block |
+| intersection_block_material | "GREEN_WOOL" | A block with this material will be treated as an intersection block |
+| kill_block_material | "YELLOW_WOOL" | A block with this material will kill carts |
+| slow_block_material | "ORANGE_WOOL" | A block with this material will slow carts |
+| spawn_block_material | "BLACK_WOOL" | A block with this material will spawn carts once a redstone signal is applied |
 | empty_cart_timer | 10 | Number of seconds before an empty cart will despawn |
 | empty_cart_timer_ignore_storagemincart | true | empty_cart_timer is ignored for storage carts if true |
 | empty_cart_timer_ignore_spawnermincart | true | empty_cart_timer is ignored for spawner carts if true |
