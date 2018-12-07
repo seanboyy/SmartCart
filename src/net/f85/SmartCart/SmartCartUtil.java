@@ -11,7 +11,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
-import org.bukkit.material.Wool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.List;
 class SmartCartUtil {
 
     private ArrayList<SmartCartVehicle> cartList = new ArrayList<>();
-    private net.f85.SmartCart.SmartCart plugin;
+    private SmartCart plugin;
 
     SmartCartUtil(SmartCart plugin) {
         this.plugin = plugin;
@@ -95,17 +94,36 @@ class SmartCartUtil {
 
     boolean isControlBlock(Block block) {
         Block blockAbove = block.getLocation().add(0,1,0).getBlock();
-        return (isWool(block) && isRail(blockAbove));
+        return isRail(blockAbove) && (block.getType() == BlockMaterial.ElevatorBlock.material ||
+                block.getType() == BlockMaterial.IntersectionBlock.material ||
+                block.getType() == BlockMaterial.KillBlock.material ||
+                block.getType() == BlockMaterial.SlowBlock.material ||
+                block.getType() == BlockMaterial.SpawnBlock.material);
+        //return (isWool(block) && isRail(blockAbove));
     }
 
 
-    private boolean isElevatorBlock(Block block) {
-        return isControlBlock(block) && (block.getState().getData() instanceof Wool && ((Wool)block.getState().getData()).getColor() == DyeColor.RED);
+    boolean isElevatorBlock(Block block) {
+        return isControlBlock(block) && block.getType() == BlockMaterial.ElevatorBlock.material;
+        //return isControlBlock(block) && (block.getState().getData() instanceof Wool && ((Wool)block.getState().getData()).getColor() == DyeColor.RED);
+    }
+
+    boolean isSlowBlock(Block block){
+        return isControlBlock(block) && block.getType() == BlockMaterial.SlowBlock.material;
+    }
+
+    boolean isIntersectionBlock(Block block){
+        return isControlBlock(block) && block.getType() == BlockMaterial.IntersectionBlock.material;
+    }
+
+    boolean isKillBlock(Block block){
+        return isControlBlock(block) && block.getType() == BlockMaterial.KillBlock.material;
     }
 
 
     boolean isSpawnBlock(Block block) {
-        return isControlBlock(block) && (block.getState().getData() instanceof Wool && ((Wool)block.getState().getData()).getColor() == DyeColor.BLACK);
+        return isControlBlock(block) && block.getType() == BlockMaterial.SpawnBlock.material;
+        //return isControlBlock(block) && (block.getState().getData() instanceof Wool && ((Wool)block.getState().getData()).getColor() == DyeColor.BLACK);
     }
 
 
@@ -186,7 +204,7 @@ class SmartCartUtil {
                     append("\n");
         }
         message += stringBuilder.toString();
-        message += "Total: " + Integer.toString(sendCartList.size());
+        message += "Total: " + sendCartList.size();
 
         sendMessage(entity, message);
     }
@@ -202,9 +220,9 @@ class SmartCartUtil {
 
 
     private String getLocationString(Location loc) {
-        return Integer.toString( loc.getBlockX() ) + ","
-                + Integer.toString( loc.getBlockY() ) + ","
-                + Integer.toString( loc.getBlockZ() );
+        return loc.getBlockX() + ","
+                + loc.getBlockY() + ","
+                + loc.getBlockZ();
     }
 
 
@@ -219,7 +237,7 @@ class SmartCartUtil {
         return block != null && block.getType() == Material.RAIL;
     }
 
-    boolean isWool(Block block){
+    private boolean isWool(Block block){
         return block != null && (
                 block.getType() == Material.RED_WOOL
                         || block.getType() == Material.ORANGE_WOOL
@@ -314,5 +332,13 @@ class SmartCartUtil {
 
     boolean isSign(Block block){
         return block.getType() == Material.SIGN || block.getType() == Material.WALL_SIGN;
+    }
+
+    boolean isPoweredSign(Block block){
+        return isSign(block) && (block.isBlockPowered() || block.isBlockIndirectlyPowered());
+    }
+
+    boolean isUnpoweredSign(Block block){
+        return isSign(block) && !(block.isBlockPowered() || block.isBlockIndirectlyPowered());
     }
 }

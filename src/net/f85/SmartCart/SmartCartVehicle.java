@@ -6,7 +6,6 @@
 //
 package net.f85.SmartCart;
 
-import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,7 +14,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.minecart.*;
-import org.bukkit.material.Wool;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -27,19 +25,19 @@ import java.util.regex.Pattern;
 class SmartCartVehicle{
 
     private Minecart cart;
-    private DyeColor previousWoolColor;
+    private BlockMaterial previousMaterial;
     private Location currentLocation;
     private Location previousLocation;
     private int[] currentRoughLocation;
     private int[] previousRoughLocation;
     private int emptyCartTimer = 0;
     // Settables
-    private double configSpeed = net.f85.SmartCart.SmartCart.config.getDouble("normal_cart_speed");
+    private double configSpeed = SmartCart.config.getDouble("normal_cart_speed");
     String configEndpoint = "";
 
     SmartCartVehicle(Minecart vehicle){
         cart = vehicle;
-        cart.setMaxSpeed(net.f85.SmartCart.SmartCart.config.getDouble("max_cart_speed"));
+        cart.setMaxSpeed(SmartCart.config.getDouble("max_cart_speed"));
     }
 
 
@@ -50,9 +48,6 @@ class SmartCartVehicle{
     private Location getPreviousLocation() {
         return previousLocation;
     }
-    private DyeColor getPreviousWoolColor() {
-        return previousWoolColor;
-    }
     double getConfigSpeed() {
         return configSpeed;
     }
@@ -62,8 +57,11 @@ class SmartCartVehicle{
     private void setConfigEndpoint(String endpoint) {
         configEndpoint = endpoint;
     }
-    void setPreviousWoolColor(DyeColor color) {
-        previousWoolColor = color;
+    private BlockMaterial getPreviousMaterial() {
+        return previousMaterial;
+    }
+    void setPreviousMaterial(BlockMaterial material) {
+        previousMaterial = material;
     }
     void saveCurrentLocation() {
         previousLocation = currentLocation;
@@ -252,15 +250,12 @@ class SmartCartVehicle{
         }
 
         Block block = getBlockBeneath();
-        if (block.getState().getData() instanceof Wool) {
-            Wool wool = (Wool)block.getState().getData();
-            if (wool.getColor() == DyeColor.ORANGE) {
-                setPreviousWoolColor(DyeColor.ORANGE);
-                setSpeed(net.f85.SmartCart.SmartCart.config.getDouble("slow_cart_speed"));
+        if(SmartCart.util.isSlowBlock(block)){
+                setPreviousMaterial(BlockMaterial.SlowBlock);
+                setSpeed(SmartCart.config.getDouble("slow_cart_speed"));
             }
-            if (wool.getColor() == DyeColor.YELLOW) {
-                // If the cart is near the center of the block, kill it.  Otherwise, slow it down.
-                if (isLeavingBlock()) {
+        if(SmartCart.util.isKillBlock(block)){
+                if(isLeavingBlock()) {
                     Entity passenger = cart.getPassengers().get(0);
                     remove(true);
                     Block block1 = getCart().getLocation().add(0, -2, 0).getBlock();
@@ -300,75 +295,56 @@ class SmartCartVehicle{
                         executeEJT(passenger, block9);
                     }
                 }
-            } else {
-                setSpeed(0.1D);
+                else {
+                    setSpeed(0.1D);
+                }
             }
-            if (wool.getColor() == DyeColor.GREEN) {
-                //   If we have already executed this block and ARE moving, teleport the cart
-                //   in the direction the player is facing.
-                if (getPreviousWoolColor() == DyeColor.GREEN) {
-                    if (isMoving() && getBlockAheadPassenger() != null) {
-                        Block blockAhead = getBlockAheadPassenger();
+        if(SmartCart.util.isIntersectionBlock(block)) {
+                if(getPreviousMaterial() == BlockMaterial.IntersectionBlock) {
+                    Block blockAhead;
+                    if(isMoving() && (blockAhead = getBlockAheadPassenger()) != null) {
                         Entity passenger = getCart().getPassengers().get(0);
-                        if (net.f85.SmartCart.SmartCart.util.isRail(blockAhead)) {
+                        if(SmartCart.util.isRail(blockAhead)) {
                             remove(true);
-                            SmartCartVehicle newSC = net.f85.SmartCart.SmartCart.util.spawnCart(blockAhead);
+                            SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead);
                             newSC.getCart().addPassenger(passenger);
                             transferSettings(newSC);
                         }
                     }
                     return;
                 }
-                // If the cart is near the center of the block, stop it.  Otherwise, slow it down.
-                if (isLeavingBlock()) {
-                    setPreviousWoolColor(DyeColor.GREEN);
+                if(isLeavingBlock()) {
+                    setPreviousMaterial(BlockMaterial.IntersectionBlock);
                     setSpeed(0D);
                     sendPassengerMessage("Move in the direction you wish to go.", true);
-                } else {
-                    // Otherwise, slow the cart down
+                }
+                else {
                     setSpeed(0.1D);
                 }
             }
-            if (wool.getColor() == DyeColor.RED) {
-                // If we're not half way through the block, return
-                if (!isLeavingBlock()) {
+        if(SmartCart.util.isElevatorBlock(block)) {
+                if(!isLeavingBlock()) {
                     setSpeed(0.1D);
                     return;
                 }
-                // If we just executed the elevator, return
-                if (getPreviousWoolColor() == DyeColor.RED) {
-                    return;
-                }
-
-                setPreviousWoolColor(DyeColor.RED);
-
-                // Get the tp target, destroy old cart, spawn new cart at tp target,
-                //   tp passenger, load passenger into new cart
-                Block elevator = net.f85.SmartCart.SmartCart.util.getElevatorBlock(block.getLocation());
-                if (elevator == null) {
-                    return;
-                }
+                if(getPreviousMaterial() == BlockMaterial.ElevatorBlock) return;
+                setPreviousMaterial(BlockMaterial.ElevatorBlock);
+                Block elevator = SmartCart.util.getElevatorBlock(block.getLocation());
+                if(elevator == null) return;
                 Block tpTarget = elevator.getLocation().add(0, 1, 0).getBlock();
                 Entity passenger = getCart().getPassengers().get(0);
                 Vector cartVelocity = getCart().getVelocity();
-
-                // Set the new passenger location
                 Location passengerLoc = passenger.getLocation();
                 passengerLoc.setY(tpTarget.getLocation().getBlockY());
-                // Kill the cart, spawn a new one
                 remove(true);
-                SmartCartVehicle newCart = net.f85.SmartCart.SmartCart.util.spawnCart(tpTarget);
-                // Teleport passenger to new location and load them in the cart
+                SmartCartVehicle newCart = SmartCart.util.spawnCart(tpTarget);
                 passenger.teleport(passengerLoc);
                 newCart.getCart().addPassenger(passenger);
-                // Get the cart going!
                 newCart.getCart().setVelocity(cartVelocity);
                 newCart.setSpeed(1);
-                // Set the previous wool color of the new cart, to prevent a tp loop
-                newCart.setPreviousWoolColor(DyeColor.RED);
+                newCart.setPreviousMaterial(BlockMaterial.ElevatorBlock);
                 transferSettings(newCart);
             }
-        }
     }
 
 
@@ -424,7 +400,7 @@ class SmartCartVehicle{
             // This lets you chain control blocks by setting the prev wool color to null unless we
             // just got off an elevator.
             if (Math.abs(getPreviousLocation().getBlockY() - getLocation().getBlockY()) < 2) {
-                setPreviousWoolColor(null);
+                setPreviousMaterial(null);
             }
             return false;
         }
@@ -556,8 +532,8 @@ class SmartCartVehicle{
             }
             if (pair.left().equals("$SPD")) {
                 p = Pattern.compile("^\\d*\\.?\\d+");
-                Double minSpeed = 0D;
-                Double maxSpeed = net.f85.SmartCart.SmartCart.config.getDouble("max_cart_speed");
+                double minSpeed = 0D;
+                double maxSpeed = net.f85.SmartCart.SmartCart.config.getDouble("max_cart_speed");
                 if (!p.matcher(pair.right()).find() || Double.parseDouble(pair.right()) > maxSpeed || Double.parseDouble(pair.right()) < minSpeed) {
                     sendPassengerMessage("Bad speed value: \"" + pair.right() + "\". Must be a numeric value (decimals OK) between "
                             + minSpeed + " and " + maxSpeed + ".", true);
@@ -641,7 +617,7 @@ class SmartCartVehicle{
         Sign sign = (Sign) block.getState();
         for (Pair<String, String> pair : parseSign(sign)) {
             if (pair.left().equals("$EJT") && pair.right().length() >= 2) {
-                int dist = Integer.parseInt(pair.right().substring(1, pair.right().length()));
+                int dist = Integer.parseInt(pair.right().substring(1));
                 switch (pair.right().charAt(0)) {
                     case 'N':
                         passenger.teleport(passenger.getLocation().add(0, 0, -dist));

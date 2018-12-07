@@ -72,7 +72,7 @@ public class SmartCartListener implements Listener {
             cart.executeControl();
         }
         else {
-            cart.setPreviousWoolColor(null);
+            cart.setPreviousMaterial(null);
             cart.setSpeed( cart.getConfigSpeed() );
         }
 

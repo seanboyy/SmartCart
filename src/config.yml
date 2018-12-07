@@ -7,7 +7,11 @@ pickup_radius: 3
 # Don't touch this if you don't know what you're doing!
 control_sign_prefix_regex: "^\\s*SC: "
 
-control_block_block_type: "Wool"
+elevator_block_material: "RED_WOOL"
+intersection_block_material: "GREEN_WOOL"
+kill_block_material: "YELLOW_WOOL"
+slow_block_material: "ORANGE_WOOL"
+spawn_block_material: "BLACK_WOOL"
 
 # empty_cart_timer in seconds. set to 0 if you don't want to remove carts.
 empty_cart_timer: 10
