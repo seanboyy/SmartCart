@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.vehicle.VehicleUpdateEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleDestroyEvent;
+import org.bukkit.event.vehicle.VehicleExitEvent;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.block.Block;
 import org.bukkit.Material;
@@ -45,7 +46,7 @@ public class SmartCartListener implements Listener {
             return;
         }
 
-        net.f85.SmartCart.SmartCartVehicle cart = net.f85.SmartCart.SmartCart.util.getCartFromList( (Minecart) vehicle );
+        net.f85.SmartCart.SmartCartVehicle cart = SmartCart.util.getCartFromList( (Minecart) vehicle );
 
         cart.saveCurrentLocation();
         if (cart.getCart().getPassengers().isEmpty()) {
@@ -78,6 +79,14 @@ public class SmartCartListener implements Listener {
 
     }
 
+    @EventHandler
+    public void onVehicleExit(VehicleExitEvent event){
+        Vehicle vehicle = event.getVehicle();
+        if(!(vehicle instanceof Minecart)) return;
+        SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart)vehicle);
+        if(cart.getCart().isDead() || cart.isNotOnRail()) return;
+        if(cart.isLocked()) event.setCancelled(true);
+    }
 
     @EventHandler
     public void onVehicleEnter(VehicleEnterEvent event) {
@@ -94,7 +103,7 @@ public class SmartCartListener implements Listener {
             return;
         }
 
-        net.f85.SmartCart.SmartCartVehicle cart = net.f85.SmartCart.SmartCart.util.getCartFromList( (Minecart) vehicle );
+        SmartCartVehicle cart = SmartCart.util.getCartFromList( (Minecart) vehicle );
 
         // Return if minecart is marked for removal, or off rails for any reason
         if ( cart.getCart().isDead() || cart.isNotOnRail() ) {
@@ -109,7 +118,7 @@ public class SmartCartListener implements Listener {
         Vehicle vehicle = event.getVehicle();
 
         if (vehicle instanceof Minecart) {
-            net.f85.SmartCart.SmartCart.util.getCartFromList( (Minecart) vehicle ).remove(false);
+            SmartCart.util.getCartFromList( (Minecart) vehicle ).remove(false);
         }
     }
 
@@ -124,22 +133,22 @@ public class SmartCartListener implements Listener {
 
         // Function takes a location, radius, and material to search for -- get all command blocks
         int search_radius = 1;
-        ArrayList<Block> cmdBlockList = net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.RED_WOOL);
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.ORANGE_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.YELLOW_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.LIME_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.GREEN_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.CYAN_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.LIGHT_BLUE_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BLUE_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.PURPLE_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.MAGENTA_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.PINK_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BROWN_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.WHITE_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.LIGHT_GRAY_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.GRAY_WOOL));
-        cmdBlockList.addAll(net.f85.SmartCart.SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BLACK_WOOL));
+        ArrayList<Block> cmdBlockList = SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.RED_WOOL);
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.ORANGE_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.YELLOW_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.LIME_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.GREEN_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.CYAN_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.LIGHT_BLUE_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BLUE_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.PURPLE_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.MAGENTA_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.PINK_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BROWN_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.WHITE_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.LIGHT_GRAY_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.GRAY_WOOL));
+        cmdBlockList.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BLACK_WOOL));
         // Return if we didn't find any command blocks
         if (cmdBlockList.size() == 0) {
             return;
@@ -149,7 +158,7 @@ public class SmartCartListener implements Listener {
 
         // Check each of the command blocks and put spawn blocks in an arraylist
         for (Block thisBlock : cmdBlockList) {
-            if (net.f85.SmartCart.SmartCart.util.isSpawnBlock(thisBlock)) {
+            if (SmartCart.util.isSpawnBlock(thisBlock)) {
                 spawnBlocks.add(thisBlock);
             }
         }
@@ -164,7 +173,7 @@ public class SmartCartListener implements Listener {
         Block block = spawnBlocks.get(0).getLocation().add(0D, 1D, 0D).getBlock();
 
         // spawn a cart
-        Minecart cart = net.f85.SmartCart.SmartCart.util.spawnCart(block).getCart();
+        Minecart cart = SmartCart.util.spawnCart(block).getCart();
         if (cart == null) {
             return;
         }
@@ -174,7 +183,7 @@ public class SmartCartListener implements Listener {
         for (Entity entity : cart.getNearbyEntities(r, r, r)) {
             if (entity instanceof Player && cart.getPassengers().isEmpty() && entity.getVehicle() == null) {
                 cart.addPassenger(entity);
-                SmartCartVehicle smartCart = net.f85.SmartCart.SmartCart.util.getCartFromList(cart);
+                SmartCartVehicle smartCart = SmartCart.util.getCartFromList(cart);
                 boolean foundSignNearby = false;
                 Block block1 = smartCart.getCart().getLocation().add(0, -2, 0).getBlock();
                 Block block2 = smartCart.getCart().getLocation().add(1, -1, 0).getBlock();
@@ -186,31 +195,31 @@ public class SmartCartListener implements Listener {
                 Block block8 = smartCart.getCart().getLocation().add(0, 0, 1).getBlock();
                 Block block9 = smartCart.getCart().getLocation().add(0, 0, -1).getBlock();
                 // Return if we're not over a sign
-                if(net.f85.SmartCart.SmartCart.util.isSign(block1)){
+                if(SmartCart.util.isSign(block1)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block2)){
+                if(SmartCart.util.isSign(block2)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block3)){
+                if(SmartCart.util.isSign(block3)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block4)){
+                if(SmartCart.util.isSign(block4)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block5)){
+                if(SmartCart.util.isSign(block5)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block6)){
+                if(SmartCart.util.isSign(block6)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block7)){
+                if(SmartCart.util.isSign(block7)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block8)){
+                if(SmartCart.util.isSign(block8)){
                     foundSignNearby = true;
                 }
-                if(net.f85.SmartCart.SmartCart.util.isSign(block9)){
+                if(SmartCart.util.isSign(block9)){
                     foundSignNearby = true;
                 }
                 if(foundSignNearby){

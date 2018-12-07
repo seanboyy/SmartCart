@@ -31,6 +31,7 @@ class SmartCartVehicle{
     private int[] currentRoughLocation;
     private int[] previousRoughLocation;
     private int emptyCartTimer = 0;
+    private boolean locked = false;
     // Settables
     private double configSpeed = SmartCart.config.getDouble("normal_cart_speed");
     String configEndpoint = "";
@@ -70,6 +71,12 @@ class SmartCartVehicle{
         currentRoughLocation = new int[] {
                 currentLocation.getBlockX(), currentLocation.getBlockY(), currentLocation.getBlockZ()
         };
+    }
+    boolean isLocked() {
+        return locked;
+    }
+    void setLocked(boolean locked){
+        this.locked = locked;
     }
 
 
@@ -129,7 +136,7 @@ class SmartCartVehicle{
 
     // Returns true if the cart is directly above a control block
     boolean isOnControlBlock() {
-        return net.f85.SmartCart.SmartCart.util.isControlBlock( getCart().getLocation().add(0D, -1D, 0D).getBlock() );
+        return SmartCart.util.isControlBlock( getCart().getLocation().add(0D, -1D, 0D).getBlock() );
     }
 
 
@@ -146,31 +153,31 @@ class SmartCartVehicle{
         Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
         Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
         // Return if we're not over a sign
-        if(net.f85.SmartCart.SmartCart.util.isSign(block1)){
+        if(SmartCart.util.isSign(block1)){
             executeSign(block1);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block2)){
+        if(SmartCart.util.isSign(block2)){
             executeSign(block2);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block3)){
+        if(SmartCart.util.isSign(block3)){
             executeSign(block3);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block4)){
+        if(SmartCart.util.isSign(block4)){
             executeSign(block4);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block5)){
+        if(SmartCart.util.isSign(block5)){
             executeSign(block5);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block6)){
+        if(SmartCart.util.isSign(block6)){
             executeSign(block6);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block7)){
+        if(SmartCart.util.isSign(block7)){
             executeSign(block7);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block8)){
+        if(SmartCart.util.isSign(block8)){
             executeSign(block8);
         }
-        if(net.f85.SmartCart.SmartCart.util.isSign(block9)){
+        if(SmartCart.util.isSign(block9)){
             executeSign(block9);
         }
     }
@@ -229,7 +236,7 @@ class SmartCartVehicle{
         }
 
         // Remove from list of carts
-        net.f85.SmartCart.SmartCart.util.removeCart(this);
+        SmartCart.util.removeCart(this);
 
         // If we need to kill the actual cart, kill it
         if (kill) {
@@ -267,31 +274,31 @@ class SmartCartVehicle{
                     Block block7 = getCart().getLocation().add(-1, 0, 0).getBlock();
                     Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
                     Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block1)) {
+                    if (SmartCart.util.isSign(block1)) {
                         executeEJT(passenger, block1);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block2)) {
+                    if (SmartCart.util.isSign(block2)) {
                         executeEJT(passenger, block2);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block3)) {
+                    if (SmartCart.util.isSign(block3)) {
                         executeEJT(passenger, block3);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block4)) {
+                    if (SmartCart.util.isSign(block4)) {
                         executeEJT(passenger, block4);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block5)) {
+                    if (SmartCart.util.isSign(block5)) {
                         executeEJT(passenger, block5);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block6)) {
+                    if (SmartCart.util.isSign(block6)) {
                         executeEJT(passenger, block6);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block7)) {
+                    if (SmartCart.util.isSign(block7)) {
                         executeEJT(passenger, block7);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block8)) {
+                    if (SmartCart.util.isSign(block8)) {
                         executeEJT(passenger, block8);
                     }
-                    if (net.f85.SmartCart.SmartCart.util.isSign(block9)) {
+                    if (SmartCart.util.isSign(block9)) {
                         executeEJT(passenger, block9);
                     }
                 }
@@ -467,18 +474,23 @@ class SmartCartVehicle{
         }
         String text = stringBuilder.toString();
         // Check to see if the sign string matches the control sign prefix; return otherwise
-        Pattern p = Pattern.compile(net.f85.SmartCart.SmartCart.config.getString("control_sign_prefix_regex"));
+        Pattern p = Pattern.compile(SmartCart.config.getString("control_sign_prefix_regex"));
         Matcher m = p.matcher(text);
         // Return if the control prefix isn't matched
         if (!m.find()) return new ArrayList<>();
         String signText = m.replaceAll(""); // Remove the control prefix
         for(String pair : signText.split("\\|")) {
-            String[] tokens = pair.split(":");
-            tokens[0] = tokens[0].replaceAll("\\s+", "");
-            if(!tokens[0].contains("MSG")){
-                tokens[1] = tokens[1].replaceAll("\\s+", "");
+            if(!pair.contains(":")) {
+                ret.add(new Pair<>(pair, ""));
             }
-            ret.add(new Pair<>(tokens[0], tokens[1]));
+            else {
+                String[] tokens = pair.split(":");
+                tokens[0] = tokens[0].replaceAll("\\s+", "");
+                if (!tokens[0].contains("MSG")) {
+                    tokens[1] = tokens[1].replaceAll("\\s+", "");
+                }
+                ret.add(new Pair<>(tokens[0], tokens[1]));
+            }
         }
         return ret;
     }
@@ -508,9 +520,9 @@ class SmartCartVehicle{
                 vector = new Vector(-1, 0, 0);
                 break;
         }
-        if (net.f85.SmartCart.SmartCart.util.isRail(blockAhead)) {
+        if (SmartCart.util.isRail(blockAhead)) {
             oldCart.remove(true);
-            SmartCartVehicle newSC = net.f85.SmartCart.SmartCart.util.spawnCart(blockAhead);
+            SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead);
             newSC.getCart().addPassenger(passenger);
             newSC.getCart().setVelocity(vector);
             oldCart.transferSettings(newSC);
@@ -526,7 +538,7 @@ class SmartCartVehicle{
         for (Pair<String, String> pair : parseSign(sign)) {
             Pattern p;
             if (pair.left().equals("$LNC")) {
-                if (getCart().getLocation().add(0, -1, 0).getBlock().getState().getData().toString().contains("BLACK WOOL")) {
+                if (SmartCart.util.isSpawnBlock(getCart().getLocation().add(0, -1, 0).getBlock())) {
                     spawnCartInNewDirection(this, pair.right());
                 }
             }
@@ -541,8 +553,30 @@ class SmartCartVehicle{
                 }
                 configSpeed = Double.parseDouble(pair.right());
             }
+            if(pair.left().equals("$LOCK")){
+                locked = true;
+            }
+            if(pair.left().equals("$UNLOCK")){
+                locked = false;
+            }
+            if(pair.left().equals("$LEV")){
+                getCart().setFlyingVelocityMod(new Vector(1, 0, 1));
+                getCart().setDerailedVelocityMod(new Vector(1, 0, 1));
+            }
+            if(pair.left().equals("$PLM")){
+                int y = Integer.parseInt(pair.right());
+                if (y < 1) y = 1;
+                getCart().setFlyingVelocityMod(new Vector(1, y, 1));
+                getCart().setDerailedVelocityMod(new Vector(1, y, 1));
+            }
             if (pair.left().equals("$MSG")) {
                 sendPassengerMessage(pair.right(), false);
+            }
+            if(pair.left().equals("&ENDs")){
+                configEndpoint = pair.right();
+            }
+            if(pair.left().equals("$TAGs")){
+                configEndpoint = pair.right();
             }
             if (pair.left().equals("$END")) {
                 configEndpoint = pair.right();
@@ -602,7 +636,7 @@ class SmartCartVehicle{
                         vector = new Vector(-1, 0, 0);
                         break;
                 }
-                if (net.f85.SmartCart.SmartCart.util.isRail(blockAhead)) {
+                if (SmartCart.util.isRail(blockAhead)) {
                     remove(true);
                     SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead);
                     newSC.getCart().addPassenger(passenger);

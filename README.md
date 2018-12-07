@@ -24,6 +24,10 @@ Below is a list of currently supported settings and values.  If you would like t
 
 | Setting | Example | Description |
 |:--------|:-------:|:------------|
+| $LOCK | <code>$LOCK</code> | Lock - Makes players unable to leave cart until unlocked or the cart is destroyed |
+| $UNLOCK | <code>$UNLOCK</code> | Unlock - Unlocks the cart, allowing players to leave the cart |
+| $PLM | <code>$PLM:2</code> | Plummet - Speeds up a cart falling off the edge of track |
+| $LEV | <code>$LEV</code> | Levitate - Slows down a cart falling off the edge of track |
 | $SPD | <code>$SPD:0.2</code> | Speed - Sets the speed of the cart. 0.4 is vanilla max cart speed. Must be numeric and within the bounds of the server settings. Leading zero and decimal are optional.|
 | $MSG | <code>$MSG:Hi There!</code> | Message - Sends the value text to cart's passenger. Do not use colons (<code>:</code>) or pipes (<code>\|</code>) in the text.|
 | $END or $TAG | <code>$END:Oz</code> or <code>$TAG:Oz</code> | Endpoint/Tag - Sets the endpoint that this cart will attempt to reach.  After setting $END, you can use signs under intersections (no wool required) to direct the cart to the correct endpoint. See example below.|
@@ -43,7 +47,7 @@ This can be slightly confusing, so here is a full explanation.  With SmartCart, 
 
 
 ## Requirements
-This plugin is built against the [Spigot](http://www.spigotmc.org) MineCraft server.  Your mileage may vary with other servers.
+This plugin is built against the [Spigot](http://www.spigotmc.org) Minecraft server.  Your mileage may vary with other servers.
 
 To install, simply place the JAR in your plugins folder.
 

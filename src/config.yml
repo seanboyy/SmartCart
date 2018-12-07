@@ -7,6 +7,8 @@ pickup_radius: 3
 # Don't touch this if you don't know what you're doing!
 control_sign_prefix_regex: "^\\s*SC: "
 
+# These must be valid materials, as enumerated in org.bukkit.Material
+# https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 elevator_block_material: "RED_WOOL"
 intersection_block_material: "GREEN_WOOL"
 kill_block_material: "YELLOW_WOOL"
