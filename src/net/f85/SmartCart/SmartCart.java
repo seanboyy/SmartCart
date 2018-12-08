@@ -45,9 +45,7 @@ public class SmartCart extends JavaPlugin {
         }
         catch(Exception e) {
             StringBuilder sb = new StringBuilder();
-            for (StackTraceElement element : e.getStackTrace()) {
-                sb.append(element).append("\n");
-            }
+            for (StackTraceElement element : e.getStackTrace()) sb.append(element).append("\n");
             getLogger().severe("Error loading materials\n" + sb.toString());
             success = false;
         }

@@ -24,26 +24,20 @@ public class CommandExecutorUtil implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-
         String commandHelp = "Usage:\n"
                 + "   /sc list [<world>]  -- List all minecarts (world optional)\n"
                 + "   /sc kill <id>  -- Destroy the specified minecart\n"
                 + "   /sc killall [<world>]  -- Destroy all minecarts (world optional)";
         String badWorld = "The world you specified does not exist.  Valid worlds are: "
                 + SmartCart.util.getWorldList(", ");
-
         if (!cmd.getName().equalsIgnoreCase("sc")) return false;
         if (!(sender instanceof Player)) {
             sender.sendMessage("SmartCart console control not yet implemented :(");
             return true;
         }
-
         int argSize = args.length;
-
         if (argSize == 1 || argSize == 2) {
-
             switch (args[0]) {
-
                 case "list":
                     if (argSize == 1) {
                         SmartCart.util.sendCartList( SmartCart.util.getCartList(), (Entity) sender );
@@ -61,7 +55,6 @@ public class CommandExecutorUtil implements CommandExecutor {
                         SmartCart.util.sendCartList( SmartCart.util.getCartList(world), (Entity) sender );
                         return true;
                     }
-
                 case "kill":
                     // If argSize is 1 the user didn't supply an ID to remove
                     if (argSize == 1) {
@@ -86,7 +79,6 @@ public class CommandExecutorUtil implements CommandExecutor {
                         cart.remove(true);
                         return true;
                     }
-
                 case "killall":
                     if (argSize == 1) {
                         SmartCart.util.sendMessage((Entity) sender, "Removing all carts on the server!");
@@ -108,11 +100,8 @@ public class CommandExecutorUtil implements CommandExecutor {
                     }
             }
         }
-
         // If all else fails, return false!
         SmartCart.util.sendMessage((Entity) sender, commandHelp);
         return true;
     }
-
-
 }
