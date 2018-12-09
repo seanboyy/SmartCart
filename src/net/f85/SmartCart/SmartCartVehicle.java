@@ -32,10 +32,13 @@ class SmartCartVehicle{
     private int[] previousRoughLocation;
     private int emptyCartTimer = 0;
     private boolean locked = false;
+    private Vector previousVelocity;
     // Settables
     private double configSpeed = SmartCart.config.getDouble("normal_cart_speed");
     private String tag = "";
     private boolean held = false;
+    private boolean doOnceSet = false;
+    private boolean doOnceRelease = false;
 
     SmartCartVehicle(Minecart vehicle){
         cart = vehicle;
@@ -73,7 +76,7 @@ class SmartCartVehicle{
     boolean isHeld() {
         return held;
     }
-    void setHeld(boolean held){
+    private void setHeld(boolean held){
         this.held = held;
     }
     boolean isLocked() {
@@ -87,6 +90,12 @@ class SmartCartVehicle{
     }
     String getTag() {
         return tag;
+    }
+    void setPreviousVelocity(Vector oldVelocity){
+        previousVelocity = new Vector(oldVelocity.getX(), oldVelocity.getY(), oldVelocity.getZ());
+    }
+    Vector getPreviousVelocity(){
+        return previousVelocity;
     }
 
 
@@ -402,7 +411,7 @@ class SmartCartVehicle{
         return getCart() instanceof StorageMinecart;
     }
 
-    static List<Pair<String, String>> parseSign(Sign sign){
+    private static List<Pair<String, String>> parseSign(Sign sign){
         List<Pair<String, String>> ret = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for( String value : sign.getLines() ) stringBuilder.append(value);
@@ -459,7 +468,7 @@ class SmartCartVehicle{
         }
     }
 
-    private void executeSign(Block block) {
+    void executeSign(Block block) {
         if (isNotOnRail()) return;
         boolean foundEndpoint = false;
         Sign sign = (Sign) block.getState(); // Cast to Sign
@@ -509,11 +518,22 @@ class SmartCartVehicle{
                 if (cart.getVelocity().getX() < 0) spawnCartInNewDirection(this, pair.right());
             if (pair.left().equals("$S"))
                 if (cart.getVelocity().getZ() > 0) spawnCartInNewDirection(this, pair.right());
-            if(pair.left().equals("$HOLD"))
-                if(SmartCart.util.isPoweredSign(block)){
-                    sendPassengerMessage("Encountered a powered sign", true);
+            if(pair.left().equals("$HOLD")) {
+                if(SmartCart.util.isPoweredSign(block) && !doOnceSet){
                     setHeld(true);
+                    setPreviousVelocity(cart.getVelocity());
+                    getCart().setVelocity(new Vector(0, 0, 0));
+                    doOnceRelease = false;
+                    doOnceSet = true;
                 }
+                else if(!SmartCart.util.isPoweredSign(block) && !doOnceRelease){
+                    setHeld(false);
+                    if(getPreviousVelocity() != null) getCart().setVelocity(getPreviousVelocity());
+                    setPreviousVelocity(cart.getVelocity());
+                    doOnceRelease = true;
+                    doOnceSet = false;
+                }
+            }
             if (pair.left().equals(tag) || pair.left().equals("$DEF")) {
                 // Skip this if we already found and used the endpoint
                 Entity passenger = null;

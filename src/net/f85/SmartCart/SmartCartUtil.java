@@ -274,8 +274,4 @@ class SmartCartUtil {
     boolean isPoweredSign(Block block){
         return isSign(block) && (block.isBlockPowered() || block.isBlockIndirectlyPowered());
     }
-
-    boolean isUnpoweredSign(Block block){
-        return isSign(block) && !(block.isBlockPowered() || block.isBlockIndirectlyPowered());
-    }
 }

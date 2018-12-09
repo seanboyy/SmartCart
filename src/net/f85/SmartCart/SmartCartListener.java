@@ -6,7 +6,6 @@
 //
 package net.f85.SmartCart;
 
-import org.bukkit.block.Sign;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Entity;
@@ -20,7 +19,6 @@ import org.bukkit.block.Block;
 import org.bukkit.Material;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SmartCartListener implements Listener {
 
@@ -55,14 +53,21 @@ public class SmartCartListener implements Listener {
         }
     }
 
+    /*
     @EventHandler
     public void onVehicleMove(VehicleMoveEvent event) {
         Vehicle vehicle = event.getVehicle();
         if (!(vehicle instanceof Minecart)) return;
         SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
         if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-        if (cart.isHeld()) vehicle.teleport(event.getFrom());
+        if (cart.isHeld()) {
+            if(!cart.doOnceSet) {
+                cart.setPreviousVelocity(vehicle.getVelocity());
+                cart.getCart().setVelocity(new Vector(0, 0, 0));
+            }
+        }
     }
+    */
 
     @EventHandler
     public void onVehicleExit(VehicleExitEvent event) {
@@ -95,64 +100,30 @@ public class SmartCartListener implements Listener {
 
     @EventHandler
     public void onBlockRedstone(BlockRedstoneEvent event) {
-        // Return if the redstone current is turning off instead of on
-        if (event.getOldCurrent() > event.getNewCurrent()) {
-            if (SmartCart.util.isSign(event.getBlock())) {
-                Sign sign = (Sign) event.getBlock().getState();
-                List<Pair<String, String>> commands = SmartCartVehicle.parseSign(sign);
-                for (Pair<String, String> command : commands)
-                    if (command.left().equals("$HOLD")) {
-                        Block block1 = event.getBlock().getLocation().add(0, 2, 0).getBlock();
-                        Block block2 = event.getBlock().getLocation().add(-1, 1, 0).getBlock();
-                        Block block3 = event.getBlock().getLocation().add(1, 1, 0).getBlock();
-                        Block block4 = event.getBlock().getLocation().add(0, 1, -1).getBlock();
-                        Block block5 = event.getBlock().getLocation().add(-1, 1, 1).getBlock();
-                        Block block6 = event.getBlock().getLocation().add(-1, 0, 0).getBlock();
-                        Block block7 = event.getBlock().getLocation().add(1, 0, 0).getBlock();
-                        Block block8 = event.getBlock().getLocation().add(0, 0, -1).getBlock();
-                        Block block9 = event.getBlock().getLocation().add(0, 0, 1).getBlock();
-                        Minecart minecart;
-                        if ((minecart = SmartCart.util.getCartAtBlock(block1)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block2)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block3)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block4)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block5)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block6)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block7)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block8)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
-                        if ((minecart = SmartCart.util.getCartAtBlock(block9)) != null) {
-                            SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                            cart.setHeld(false);
-                        }
+        if (event.getOldCurrent() > event.getNewCurrent()){
+            if(event.getNewCurrent() != 0) return;
+            int search_radius = 1;
+            ArrayList<Block> signs = SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.SIGN);
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.WALL_SIGN));
+            if(signs.size() ==0) return;
+            for (Block block : signs) {
+                ArrayList<Block> cartLocations = SmartCart.util.getBlocksNearby(block, search_radius, Material.RAIL);
+                cartLocations.addAll(SmartCart.util.getBlocksNearby(block, search_radius, Material.POWERED_RAIL));
+                cartLocations.addAll(SmartCart.util.getBlocksNearby(block, search_radius, Material.DETECTOR_RAIL));
+                cartLocations.addAll(SmartCart.util.getBlocksNearby(block, search_radius, Material.ACTIVATOR_RAIL));
+                if(cartLocations.size() ==0 ) return;
+                Minecart minecart;
+                for(Block _block : cartLocations){
+                    if((minecart = SmartCart.util.getCartAtBlock(_block)) != null){
+                        SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
+                        SmartCart.logger.info("Found a sign, executing");
+                        cart.executeSign(block);
+                        break;
                     }
+                }
             }
             return;
         }
-
         // Function takes a location, radius, and material to search for -- get all command blocks
         int search_radius = 1;
         ArrayList<Block> cmdBlockList = SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.RED_WOOL);

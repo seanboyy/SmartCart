@@ -24,6 +24,7 @@ Below is a list of currently supported settings and values.  If you would like t
 
 | Setting | Example | Description |
 |:--------|:-------:|:------------|
+| $HOLD | <code>$HOLD</code> | Hold - pauses the minecart while the sign with $HOLD is powered by redstone. Once power is removed, the cart releases |
 | $LOCK | <code>$LOCK</code> | Lock - Makes players unable to leave cart until unlocked or the cart is destroyed |
 | $UNLOCK | <code>$UNLOCK</code> | Unlock - Unlocks the cart, allowing players to leave the cart |
 | $PLM | <code>$PLM:2</code> | Plummet - Speeds up a cart falling off the edge of track |
