@@ -17,6 +17,7 @@ import org.bukkit.event.vehicle.*;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.block.Block;
 import org.bukkit.Material;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 
@@ -46,6 +47,7 @@ public class SmartCartListener implements Listener {
         // Return if it isn't a player in the cart
         if (cart.getCart().getPassengers().isEmpty() || cart.getCart().getPassengers().get(0) != null && cart.getCart().getPassengers().get(0).getType() != EntityType.PLAYER) return;
         if (cart.isNewBlock()) cart.readControlSign();
+        if(cart.isHeld()) cart.getCart().setVelocity(new Vector(0, 0, 0));
         if (cart.isOnControlBlock()) cart.executeControl();
         else {
             cart.setPreviousMaterial(null);
@@ -75,7 +77,9 @@ public class SmartCartListener implements Listener {
         if (!(vehicle instanceof Minecart)) return;
         SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
         if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-        if (cart.isLocked()) event.setCancelled(true);
+        if (cart.isLocked()){
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -116,7 +120,6 @@ public class SmartCartListener implements Listener {
                 for(Block _block : cartLocations){
                     if((minecart = SmartCart.util.getCartAtBlock(_block)) != null){
                         SmartCartVehicle cart = SmartCart.util.getCartFromList(minecart);
-                        SmartCart.logger.info("Found a sign, executing");
                         cart.executeSign(block);
                         break;
                     }

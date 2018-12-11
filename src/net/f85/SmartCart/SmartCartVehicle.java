@@ -91,10 +91,10 @@ class SmartCartVehicle{
     String getTag() {
         return tag;
     }
-    void setPreviousVelocity(Vector oldVelocity){
+    private void setPreviousVelocity(Vector oldVelocity){
         previousVelocity = new Vector(oldVelocity.getX(), oldVelocity.getY(), oldVelocity.getZ());
     }
-    Vector getPreviousVelocity(){
+    private Vector getPreviousVelocity(){
         return previousVelocity;
     }
 
@@ -487,8 +487,12 @@ class SmartCartVehicle{
                 }
                 configSpeed = Double.parseDouble(pair.right());
             }
-            if(pair.left().equals("$LOCK")) setLocked(true);
-            if(pair.left().equals("$UNLOCK")) setLocked(false);
+            if(pair.left().equals("$LOCK")){
+                setLocked(true);
+            }
+            if(pair.left().equals("$UNLOCK")){
+                setLocked(false);
+            }
             if(pair.left().equals("$LEV")){
                 getCart().setFlyingVelocityMod(new Vector(1, 0, 1));
                 getCart().setDerailedVelocityMod(new Vector(1, 0, 1));
@@ -518,6 +522,11 @@ class SmartCartVehicle{
                 if (cart.getVelocity().getX() < 0) spawnCartInNewDirection(this, pair.right());
             if (pair.left().equals("$S"))
                 if (cart.getVelocity().getZ() > 0) spawnCartInNewDirection(this, pair.right());
+            if(pair.left().equals("$JMP")){
+                int y = Integer.parseInt(pair.right());
+                if(y < 1) y = 1;
+                cart.setVelocity(new Vector(cart.getVelocity().getX(), y, cart.getVelocity().getZ()));
+            }
             if(pair.left().equals("$HOLD")) {
                 if(SmartCart.util.isPoweredSign(block) && !doOnceSet){
                     setHeld(true);
@@ -526,7 +535,7 @@ class SmartCartVehicle{
                     doOnceRelease = false;
                     doOnceSet = true;
                 }
-                else if(!SmartCart.util.isPoweredSign(block) && !doOnceRelease){
+                else if(/*!SmartCart.util.isPoweredSign(block)) &&*/ !doOnceRelease){
                     setHeld(false);
                     if(getPreviousVelocity() != null) getCart().setVelocity(getPreviousVelocity());
                     setPreviousVelocity(cart.getVelocity());
