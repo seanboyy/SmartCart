@@ -3,7 +3,7 @@
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package net.f85.SmartCart;
+package io.github.seanboyy.SmartCart;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;

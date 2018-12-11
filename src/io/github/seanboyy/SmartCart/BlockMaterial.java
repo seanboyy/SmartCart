@@ -1,4 +1,4 @@
-package net.f85.SmartCart;
+package io.github.seanboyy.SmartCart;
 
 import org.bukkit.Material;
 

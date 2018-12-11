@@ -1,4 +1,4 @@
-package net.f85.SmartCart;
+package io.github.seanboyy.SmartCart;
 
 public class Pair<L, R> {
     private L left;

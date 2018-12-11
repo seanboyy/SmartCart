@@ -4,7 +4,7 @@
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package net.f85.SmartCart;
+package io.github.seanboyy.SmartCart;
 
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.Minecart;
@@ -24,10 +24,10 @@ import java.util.ArrayList;
 public class SmartCartListener implements Listener {
 
 
-    private net.f85.SmartCart.SmartCart plugin;
+    private SmartCart plugin;
 
 
-    SmartCartListener(net.f85.SmartCart.SmartCart plugin) {
+    SmartCartListener(SmartCart plugin) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
@@ -38,7 +38,7 @@ public class SmartCartListener implements Listener {
         Vehicle vehicle = event.getVehicle();
         // Return if vehicle is not a minecart
         if (!(vehicle instanceof Minecart)) return;
-        net.f85.SmartCart.SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
+        SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
         cart.saveCurrentLocation();
         if (cart.getCart().getPassengers().isEmpty()) cart.setEmptyCartTimer();
         else cart.resetEmptyCartTimer();
@@ -167,7 +167,7 @@ public class SmartCartListener implements Listener {
         if (cart == null) return;
 
         // pick up a nearby player
-        double r = net.f85.SmartCart.SmartCart.config.getDouble("pickup_radius");
+        double r = SmartCart.config.getDouble("pickup_radius");
         for (Entity entity : cart.getNearbyEntities(r, r, r))
             if (entity instanceof Player && cart.getPassengers().isEmpty() && entity.getVehicle() == null) {
                 cart.addPassenger(entity);

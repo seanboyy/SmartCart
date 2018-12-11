@@ -4,7 +4,7 @@
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package net.f85.SmartCart;
+package io.github.seanboyy.SmartCart;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -118,18 +118,18 @@ class SmartCartVehicle{
 
     void setEmptyCartTimer() {
         if(
-                net.f85.SmartCart.SmartCart.config.getBoolean("empty_cart_timer_ignore_commandminecart", true) && isCommandMinecart() ||
-                        net.f85.SmartCart.SmartCart.config.getBoolean("empty_cart_timer_ignore_explosiveminecart", true) && isExplosiveMinecart() ||
-                        net.f85.SmartCart.SmartCart.config.getBoolean("empty_cart_timer_ignore_storagemincart", true) && isStorageMinecart() ||
-                        net.f85.SmartCart.SmartCart.config.getBoolean("empty_cart_timer_ignore_hoppermincart", true) && isHopperMinecart() ||
-                        net.f85.SmartCart.SmartCart.config.getBoolean("empty_cart_timer_ignore_poweredmincart", true) && isPoweredMinecart() ||
-                        net.f85.SmartCart.SmartCart.config.getBoolean("empty_cart_timer_ignore_spawnermincart", true) && isSpawnerMinecart() ||
-                        net.f85.SmartCart.SmartCart.config.getInt("empty_cart_timer") == 0
+                SmartCart.config.getBoolean("empty_cart_timer_ignore_commandminecart", true) && isCommandMinecart() ||
+                        SmartCart.config.getBoolean("empty_cart_timer_ignore_explosiveminecart", true) && isExplosiveMinecart() ||
+                        SmartCart.config.getBoolean("empty_cart_timer_ignore_storagemincart", true) && isStorageMinecart() ||
+                        SmartCart.config.getBoolean("empty_cart_timer_ignore_hoppermincart", true) && isHopperMinecart() ||
+                        SmartCart.config.getBoolean("empty_cart_timer_ignore_poweredmincart", true) && isPoweredMinecart() ||
+                        SmartCart.config.getBoolean("empty_cart_timer_ignore_spawnermincart", true) && isSpawnerMinecart() ||
+                        SmartCart.config.getInt("empty_cart_timer") == 0
                 ) {
             emptyCartTimer = 0;
         } else {
             emptyCartTimer += 1;
-            if (emptyCartTimer > net.f85.SmartCart.SmartCart.config.getInt("empty_cart_timer") * 20) {
+            if (emptyCartTimer > SmartCart.config.getInt("empty_cart_timer") * 20) {
                 remove(true);
             }
         }
@@ -192,7 +192,7 @@ class SmartCartVehicle{
     // Sets the speed to the max, in the direction the cart is already travelling
     void setSpeed(double speed) {
         // Check if the cart is empty, and if we should boost empty carts
-        if (getCart().isEmpty() && !net.f85.SmartCart.SmartCart.config.getBoolean("boost_empty_carts")) return;
+        if (getCart().isEmpty() && !SmartCart.config.getBoolean("boost_empty_carts")) return;
         Vector velocity = getCart().getVelocity();
         // If the cart is moving
         if (isMoving()) {
@@ -479,7 +479,7 @@ class SmartCartVehicle{
             if (pair.left().equals("$SPD")) {
                 p = Pattern.compile("^\\d*\\.?\\d+");
                 double minSpeed = 0D;
-                double maxSpeed = net.f85.SmartCart.SmartCart.config.getDouble("max_cart_speed");
+                double maxSpeed = SmartCart.config.getDouble("max_cart_speed");
                 if (!p.matcher(pair.right()).find() || Double.parseDouble(pair.right()) > maxSpeed || Double.parseDouble(pair.right()) < minSpeed) {
                     sendPassengerMessage("Bad speed value: \"" + pair.right() + "\". Must be a numeric value (decimals OK) between "
                             + minSpeed + " and " + maxSpeed + ".", true);
