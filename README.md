@@ -1,5 +1,5 @@
 # SmartCart
-A simple, lightweight transportation plugin for MineCraft.  No powered rails required!  [Download It Now!](https://github.com/seanboyy/SmartCart/releases/download/1.0.0/SmartCart.jar)
+A simple, lightweight transportation plugin for MineCraft.  No powered rails required!  [Download It Now!](https://www.spigotmc.org/resources/smartcart.63098/history)
 
 ## Control Blocks
 These are all configurable. Default values are:
