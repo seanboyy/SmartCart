@@ -14,6 +14,9 @@ intersection_block_material: "GREEN_WOOL"
 kill_block_material: "YELLOW_WOOL"
 slow_block_material: "ORANGE_WOOL"
 spawn_block_material: "BLACK_WOOL"
+train_spawn_block_material: "GRAY_WOOL"
+
+max_train_length: 10
 
 # empty_cart_timer in seconds. set to 0 if you don't want to remove carts.
 empty_cart_timer: 10

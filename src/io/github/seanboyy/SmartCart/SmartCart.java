@@ -41,6 +41,7 @@ public class SmartCart extends JavaPlugin {
             BlockMaterial.KillBlock.setMaterial(config.getString("kill_block_material"));
             BlockMaterial.SlowBlock.setMaterial(config.getString("slow_block_material"));
             BlockMaterial.SpawnBlock.setMaterial(config.getString("spawn_block_material"));
+            BlockMaterial.TrainSpawnBlock.setMaterial(config.getString("train_spawn_block_material"));
             getLogger().info("done");
         }
         catch(Exception e) {

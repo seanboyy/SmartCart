@@ -81,12 +81,10 @@ class SmartCartUtil {
                 block.getType() == BlockMaterial.KillBlock.material ||
                 block.getType() == BlockMaterial.SlowBlock.material ||
                 block.getType() == BlockMaterial.SpawnBlock.material);
-        //return (isWool(block) && isRail(blockAbove));
     }
 
     boolean isElevatorBlock(Block block) {
         return isControlBlock(block) && block.getType() == BlockMaterial.ElevatorBlock.material;
-        //return isControlBlock(block) && (block.getState().getData() instanceof Wool && ((Wool)block.getState().getData()).getColor() == DyeColor.RED);
     }
 
     boolean isSlowBlock(Block block){
@@ -101,9 +99,12 @@ class SmartCartUtil {
         return isControlBlock(block) && block.getType() == BlockMaterial.KillBlock.material;
     }
 
+    boolean isTrainSpawnBlock(Block block){
+        return isControlBlock(block) && block.getType() == BlockMaterial.TrainSpawnBlock.material;
+    }
+
     boolean isSpawnBlock(Block block) {
         return isControlBlock(block) && block.getType() == BlockMaterial.SpawnBlock.material;
-        //return isControlBlock(block) && (block.getState().getData() instanceof Wool && ((Wool)block.getState().getData()).getColor() == DyeColor.BLACK);
     }
 
     // This searches methodically through a cube with a side length of (radius * 2 + 1)
@@ -166,6 +167,32 @@ class SmartCartUtil {
         message += stringBuilder.toString();
         message += "Total: " + sendCartList.size();
         sendMessage(entity, message);
+    }
+
+    void sendCartList(ArrayList<SmartCartVehicle> sendCartList){
+        int padID = 7;
+        int padWorld = 10;
+        int padLocation = 18;
+        int padPassenger = 20;
+        int padAge = 5;
+        String message = "\n"
+                + padRight("ID", padID)
+                + padRight("World", padWorld)
+                + padRight("Location", padLocation)
+                + padRight("Passenger", padPassenger)
+                + padRight("Age", padAge)
+                + "\n";
+        StringBuilder stringBuilder = new StringBuilder();
+        for(SmartCartVehicle cart : sendCartList)
+            stringBuilder.append(padRight(Integer.toString(cart.getEntityId()), padID)).
+                    append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
+                    append(padRight(getLocationString(cart.getLocation()), padLocation)).
+                    append(padRight(cart.getPassengerName(), padPassenger)).
+                    append(padRight(getAgeString(cart.getCart()), padAge)).
+                    append("\n");
+        message += stringBuilder.toString();
+        message += "Total: " + sendCartList.size();
+        SmartCart.logger.info(message);
     }
 
     private static String padRight(String s, int n) {

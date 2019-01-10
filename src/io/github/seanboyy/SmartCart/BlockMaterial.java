@@ -9,7 +9,8 @@ public enum BlockMaterial {
     IntersectionBlock   (GREEN_WOOL),
     KillBlock           (YELLOW_WOOL),
     SlowBlock           (ORANGE_WOOL),
-    SpawnBlock          (BLACK_WOOL);
+    SpawnBlock          (BLACK_WOOL),
+    TrainSpawnBlock     (GRAY_WOOL);
 
     public Material material;
 

@@ -19,6 +19,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +40,8 @@ class SmartCartVehicle{
     private boolean held = false;
     private boolean doOnceSet = false;
     private boolean doOnceRelease = false;
+    private boolean inTrain = false;
+    private UUID trainId = new UUID(0, 0);
 
     SmartCartVehicle(Minecart vehicle){
         cart = vehicle;
@@ -52,6 +55,17 @@ class SmartCartVehicle{
     }
     private Location getPreviousLocation() {
         return previousLocation;
+    }
+    UUID getTrainId() {
+        return trainId;
+    }
+    //ONLY EVER CALL THIS ONCE PER TRAIN
+    UUID setTrainId(){
+        trainId = UUID.randomUUID();
+        return trainId;
+    }
+    void setTrainId(UUID uuid){
+        trainId = uuid;
     }
     double getConfigSpeed() {
         return configSpeed;
@@ -82,6 +96,12 @@ class SmartCartVehicle{
     boolean isLocked() {
         return locked;
     }
+    boolean isInTrain() {
+        return inTrain;
+    }
+    void setInTrain(boolean inTrain){
+        this.inTrain = inTrain;
+    }
     private void setLocked(boolean locked){
         this.locked = locked;
     }
@@ -97,6 +117,7 @@ class SmartCartVehicle{
     private Vector getPreviousVelocity(){
         return previousVelocity;
     }
+
 
 
     // These methods just pass through to the Minecart class
@@ -411,7 +432,7 @@ class SmartCartVehicle{
         return getCart() instanceof StorageMinecart;
     }
 
-    private static List<Pair<String, String>> parseSign(Sign sign){
+    static List<Pair<String, String>> parseSign(Sign sign){
         List<Pair<String, String>> ret = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder();
         for( String value : sign.getLines() ) stringBuilder.append(value);

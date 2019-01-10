@@ -32,76 +32,132 @@ public class CommandExecutorUtil implements CommandExecutor {
                 + SmartCart.util.getWorldList(", ");
         if (!cmd.getName().equalsIgnoreCase("sc")) return false;
         if (!(sender instanceof Player)) {
+            int argSize = args.length;
+            if(argSize == 1 || argSize == 2){
+                switch(args[0]){
+                    case "list":
+                        if(argSize == 1){
+                            SmartCart.util.sendCartList(SmartCart.util.getCartList());
+                            return true;
+                        }
+                        else{
+                            World world = Bukkit.getWorld(args[1]);
+                            if(world == null){
+                                SmartCart.logger.warning(badWorld);
+                                return true;
+                            }
+                            SmartCart.util.sendCartList(SmartCart.util.getCartList(world));
+                            return true;
+                        }
+                    case "kill":
+                        if(argSize == 1){
+                            SmartCart.logger.warning("Usage: /sc kill <id> -- you "
+                                    + "can find a cart's id using '/sc list [<world>]', or kill all carts "
+                                    + "with '/sc killall [<world>]'");
+                            return true;
+                        }
+                        else{
+                            if(!SmartCartUtil.isInteger(args[1])){
+                                SmartCart.logger.warning("Error: Cart ID must be an integer!");
+                                return true;
+                            }
+                            SmartCartVehicle cart = SmartCart.util.getCartFromList(Integer.parseInt(args[1]));
+                            if(cart == null){
+                                SmartCart.logger.warning("Error: Can't find that cart ID");
+                                return true;
+                            }
+                            SmartCart.logger.info("Removing cart " + args[1]);
+                            cart.remove(true);
+                            return true;
+                        }
+                    case "killall":
+                        if(argSize == 1){
+                            SmartCart.logger.info("Removing all carts on the server!");
+                            SmartCart.util.killCarts(SmartCart.util.getCartList());
+                            return true;
+                        }
+                        else{
+                            World world = Bukkit.getWorld(args[1]);
+                            if(world == null){
+                                SmartCart.logger.warning(badWorld);
+                                return true;
+                            }
+                            SmartCart.logger.info("Removing all carts in world " + world.getName());
+                            SmartCart.util.killCarts(SmartCart.util.getCartList(world));
+                            return true;
+                        }
+                }
+            }
             sender.sendMessage("SmartCart console control not yet implemented :(");
             return true;
         }
-        int argSize = args.length;
-        if (argSize == 1 || argSize == 2) {
-            switch (args[0]) {
-                case "list":
-                    if (argSize == 1) {
-                        SmartCart.util.sendCartList( SmartCart.util.getCartList(), (Entity) sender );
-                        return true;
-                    }
-                    else{
-                        // Try to get the requested world
-                        World world = Bukkit.getWorld(args[1]);
-                        // If the world specified doesn't exist, let them know
-                        if (world == null) {
-                            SmartCart.util.sendMessage((Entity) sender, badWorld);
+        else {
+            int argSize = args.length;
+            if (argSize == 1 || argSize == 2) {
+                switch (args[0]) {
+                    case "list":
+                        if (argSize == 1) {
+                            SmartCart.util.sendCartList(SmartCart.util.getCartList(), (Entity) sender);
+                            return true;
+                        } else {
+                            // Try to get the requested world
+                            World world = Bukkit.getWorld(args[1]);
+                            // If the world specified doesn't exist, let them know
+                            if (world == null) {
+                                SmartCart.util.sendMessage((Entity) sender, badWorld);
+                                return true;
+                            }
+                            // Since it does exist, list the carts in it
+                            SmartCart.util.sendCartList(SmartCart.util.getCartList(world), (Entity) sender);
                             return true;
                         }
-                        // Since it does exist, list the carts in it
-                        SmartCart.util.sendCartList( SmartCart.util.getCartList(world), (Entity) sender );
-                        return true;
-                    }
-                case "kill":
-                    // If argSize is 1 the user didn't supply an ID to remove
-                    if (argSize == 1) {
-                        SmartCart.util.sendMessage((Entity) sender, "Usage: /sc kill <id> -- you "
-                                + "can find a cart's id using '/sc list [<world>]', or kill all carts "
-                                + "with '/sc killall [<world>]'");
-                        return true;
-                    }
-                    // If argSize is 2, we have the right # of arguments, so check to make sure ID is an
-                    //   int and the ID references a known cart, then kill it with fire.
-                    else{
-                        if (!SmartCartUtil.isInteger(args[1])) {
-                            SmartCart.util.sendMessage((Entity) sender, "Error: Cart ID must be an integer!");
+                    case "kill":
+                        // If argSize is 1 the user didn't supply an ID to remove
+                        if (argSize == 1) {
+                            SmartCart.util.sendMessage((Entity) sender, "Usage: /sc kill <id> -- you "
+                                    + "can find a cart's id using '/sc list [<world>]', or kill all carts "
+                                    + "with '/sc killall [<world>]'");
                             return true;
                         }
-                        SmartCartVehicle cart = SmartCart.util.getCartFromList(Integer.parseInt(args[1]));
-                        if (cart == null) {
-                            SmartCart.util.sendMessage((Entity) sender, "Error: Can't find that cart ID :(");
+                        // If argSize is 2, we have the right # of arguments, so check to make sure ID is an
+                        //   int and the ID references a known cart, then kill it with fire.
+                        else {
+                            if (!SmartCartUtil.isInteger(args[1])) {
+                                SmartCart.util.sendMessage((Entity) sender, "Error: Cart ID must be an integer!");
+                                return true;
+                            }
+                            SmartCartVehicle cart = SmartCart.util.getCartFromList(Integer.parseInt(args[1]));
+                            if (cart == null) {
+                                SmartCart.util.sendMessage((Entity) sender, "Error: Can't find that cart ID :(");
+                                return true;
+                            }
+                            SmartCart.util.sendMessage((Entity) sender, "Removing cart " + args[1]);
+                            cart.remove(true);
                             return true;
                         }
-                        SmartCart.util.sendMessage((Entity) sender, "Removing cart " + args[1]);
-                        cart.remove(true);
-                        return true;
-                    }
-                case "killall":
-                    if (argSize == 1) {
-                        SmartCart.util.sendMessage((Entity) sender, "Removing all carts on the server!");
-                        SmartCart.util.killCarts(SmartCart.util.getCartList());
-                        return true;
-                    }
-                    else{
-                        // Try to get the requested world
-                        World world = Bukkit.getWorld(args[1]);
-                        // If the world specified doesn't exist, let them know
-                        if (world == null) {
-                            SmartCart.util.sendMessage((Entity) sender, badWorld);
+                    case "killall":
+                        if (argSize == 1) {
+                            SmartCart.util.sendMessage((Entity) sender, "Removing all carts on the server!");
+                            SmartCart.util.killCarts(SmartCart.util.getCartList());
+                            return true;
+                        } else {
+                            // Try to get the requested world
+                            World world = Bukkit.getWorld(args[1]);
+                            // If the world specified doesn't exist, let them know
+                            if (world == null) {
+                                SmartCart.util.sendMessage((Entity) sender, badWorld);
+                                return true;
+                            }
+                            // Since it does exist, remove the carts in it
+                            SmartCart.util.sendMessage((Entity) sender, "Removing all carts in world: " + world.getName());
+                            SmartCart.util.killCarts(SmartCart.util.getCartList(world));
                             return true;
                         }
-                        // Since it does exist, remove the carts in it
-                        SmartCart.util.sendMessage((Entity) sender, "Removing all carts in world: " + world.getName());
-                        SmartCart.util.killCarts(SmartCart.util.getCartList(world));
-                        return true;
-                    }
+                }
             }
+            // If all else fails, return false!
+            SmartCart.util.sendMessage((Entity) sender, commandHelp);
+            return true;
         }
-        // If all else fails, return false!
-        SmartCart.util.sendMessage((Entity) sender, commandHelp);
-        return true;
     }
 }
