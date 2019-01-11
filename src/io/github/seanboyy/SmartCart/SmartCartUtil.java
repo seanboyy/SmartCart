@@ -80,7 +80,8 @@ class SmartCartUtil {
                 block.getType() == BlockMaterial.IntersectionBlock.material ||
                 block.getType() == BlockMaterial.KillBlock.material ||
                 block.getType() == BlockMaterial.SlowBlock.material ||
-                block.getType() == BlockMaterial.SpawnBlock.material);
+                block.getType() == BlockMaterial.SpawnBlock.material ||
+                block.getType() == BlockMaterial.TrainSpawnBlock.material);
     }
 
     boolean isElevatorBlock(Block block) {

@@ -50,7 +50,7 @@ public class SmartCartListener implements Listener {
         // Return if minecart is marked for removal, or off rails for any reason
         if (cart.getCart().isDead() || cart.isNotOnRail()) return;
         // Return if it isn't a player in the cart
-        if (!cart.isInTrain() && cart.getCart().getPassengers().isEmpty() || cart.getCart().getPassengers().get(0) != null && cart.getCart().getPassengers().get(0).getType() != EntityType.PLAYER) return;
+        if (!cart.isInTrain() && (cart.getCart().getPassengers().isEmpty() || cart.getCart().getPassengers().get(0) != null && cart.getCart().getPassengers().get(0).getType() != EntityType.PLAYER)) return;
         if (cart.isNewBlock()) cart.readControlSign();
         if(cart.isHeld()) cart.getCart().setVelocity(new Vector(0, 0, 0));
         if (cart.isOnControlBlock()) cart.executeControl();
@@ -288,11 +288,10 @@ public class SmartCartListener implements Listener {
                 }
             }
             //find out where to place the carts
-            Rail rail = (Rail)block.getState();
             ArrayList<Location> trainPlaces = new ArrayList<>();
             ArrayList<Minecart> trainCarts = new ArrayList<>();
-            trainPlaces.add(((Block)rail).getLocation());
-            findNeighborRails(trainPlaces, rail, null, numberOfCarts, -1);
+            trainPlaces.add(block.getLocation());
+            findNeighborRails(trainPlaces, block, null, numberOfCarts, -1);
             //place first cart
             Minecart cart = SmartCart.util.spawnCart(trainPlaces.get(0).getBlock()).getCart();
             if (cart == null) return;
@@ -334,7 +333,7 @@ public class SmartCartListener implements Listener {
         2 = south
         3 = west
      */
-    private void findNeighborRails(List<Location> locations, Rail rail, Rail parent, int num, int goingDir){
+    private void findNeighborRails(List<Location> locations, Block rail, Block parent, int num, int goingDir){
         if (num == 0) return;
         //if parent goes north south, try going south first, then west, then east. If nothing is found, stop.
         //if parent goes east west, try going south first, then west, then east. If nothing is found, stop.
@@ -343,49 +342,49 @@ public class SmartCartListener implements Listener {
             switch(goingDir){
                 //north
                 case 0:
-                    switch(rail.getShape()){
+                    switch(((Rail)rail.getBlockData()).getShape()){
                         case NORTH_SOUTH:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, -1));
                                 goingDir = 0;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, -1).getBlock();
                             }
                             else return;
                             break;
                         case SOUTH_EAST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(1, 0, 0));
                                 goingDir = 1;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case SOUTH_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(-1, 0, 0));
                                 goingDir = 3;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_NORTH:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 1, -1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 1, -1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 1, -1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 1, -1));
                                 goingDir = 0;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 1, -1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 1, -1).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_SOUTH:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, -1));
                                 goingDir = 0;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, -1).getBlock();
                             }
                             else return;
                             break;
@@ -393,49 +392,49 @@ public class SmartCartListener implements Listener {
                     break;
                 //east
                 case 1:
-                    switch(rail.getShape()){
+                    switch(((Rail)rail.getBlockData()).getShape()){
                         case NORTH_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, -1));
                                 goingDir = 0;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, -1).getBlock();
                             }
                             else return;
                             break;
                         case SOUTH_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, 1));
                                 goingDir = 2;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, 1).getBlock();
                             }
                             else return;
                             break;
                         case EAST_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(1, 0, 0));
                                 goingDir = 1;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_EAST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 1, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(1, 1, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(1, 1, 0).getBlock())){
+                                locations.add(rail.getLocation().add(1, 1, 0));
                                 goingDir = 1;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(1, 1, 0).getBlock().getState();
+                                rail = rail.getLocation().add(1, 1, 0).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(1, 0, 0));
                                 goingDir = 1;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(1, 0, 0).getBlock();
                             }
                             else return;
                             break;
@@ -443,49 +442,49 @@ public class SmartCartListener implements Listener {
                     break;
                 //south
                 case 2:
-                    switch(rail.getShape()){
+                    switch(((Rail)rail.getBlockData()).getShape()){
                         case NORTH_SOUTH:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, 1));
                                 goingDir = 2;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, 1).getBlock();
                             }
                             else return;
                             break;
                         case NORTH_EAST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(1, 0, 0));
                                 goingDir = 1;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case NORTH_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(-1, 0, 0));
                                 goingDir = 3;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_NORTH:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, 1));
                                 goingDir = 2;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, 1).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_SOUTH:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 1, 1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 1, 1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 1, 1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 1, 1));
                                 goingDir = 2;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 1, 1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 1, 1).getBlock();
                             }
                             else return;
                             break;
@@ -493,49 +492,49 @@ public class SmartCartListener implements Listener {
                     break;
                 //west
                 case 3:
-                    switch(rail.getShape()){
+                    switch(((Rail)rail.getBlockData()).getShape()){
                         case EAST_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(-1, 0, 0));
                                 goingDir = 3;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case SOUTH_EAST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, 1));
                                 goingDir = 2;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, 1).getBlock();
                             }
                             else return;
                             break;
                         case NORTH_EAST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                                locations.add(rail.getLocation().add(0, 0, -1));
                                 goingDir = 0;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                                rail = rail.getLocation().add(0, 0, -1).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_EAST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                                locations.add(rail.getLocation().add(-1, 0, 0));
                                 goingDir = 3;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
                             }
                             else return;
                             break;
                         case ASCENDING_WEST:
-                            if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 1, 0).getBlock())){
-                                locations.add(((Block)rail).getLocation().add(-1, 1, 0));
+                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 1, 0).getBlock())){
+                                locations.add(rail.getLocation().add(-1, 1, 0));
                                 goingDir = 3;
                                 parent = rail;
-                                rail = (Rail)((Block)rail).getLocation().add(-1, 1, 0).getBlock().getState();
+                                rail = rail.getLocation().add(-1, 1, 0).getBlock();
                             }
                             else return;
                             break;
@@ -544,20 +543,20 @@ public class SmartCartListener implements Listener {
             }
         }
         else{
-            switch(rail.getShape()){
+            switch(((Rail)rail.getBlockData()).getShape()){
                 case NORTH_SOUTH:
                     //look south
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, 1).getBlock();
                         goingDir = 2;
                     }
                     //otherwise look north
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, -1).getBlock();
                         goingDir = 0;
                     }
                     //this is the only rail.
@@ -565,138 +564,138 @@ public class SmartCartListener implements Listener {
                     break;
                 case EAST_WEST:
                     //look west
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
                         goingDir = 3;
                     }
                     //look east
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(1, 0, 0).getBlock();
                         goingDir = 1;
                     }
                     //this is the only rail
                     else return;
                     break;
                 case NORTH_EAST:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                    if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(1, 0, 0).getBlock();
                         goingDir = 1;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, -1).getBlock();
                         goingDir = 0;
                     }
                     else return;
                     break;
                 case NORTH_WEST:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
                         goingDir = 3;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, -1).getBlock();
                         goingDir = 0;
                     }
                     else return;
                     break;
                 case SOUTH_EAST:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, 1).getBlock();
                         goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(1, 0, 0).getBlock();
                         goingDir = 1;
                     }
                     else return;
                     break;
                 case SOUTH_WEST:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, 1).getBlock();
                         goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
                         goingDir = 3;
                     }
                     else return;
                     break;
                 case ASCENDING_EAST:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(-1, 0, 0));
+                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(-1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
                         goingDir = 3;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 1, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(1, 1, 0));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 1, 0).getBlock())){
+                        locations.add(rail.getLocation().add(1, 1, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(1, 1, 0).getBlock().getState();
+                        rail = rail.getLocation().add(1, 1, 0).getBlock();
                         goingDir = 1;
                     }
                     else return;
                     break;
                 case ASCENDING_NORTH:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, 1));
+                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, 1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, 1).getBlock();
                         goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 1, -1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 1, -1));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 1, -1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 1, -1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 1, -1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 1, -1).getBlock();
                         goingDir = 0;
                     }
                     else return;
                     break;
                 case ASCENDING_WEST:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(-1, 1, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(-1, 1, 0));
+                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 1, 0).getBlock())){
+                        locations.add(rail.getLocation().add(-1, 1, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(-1, 1, 0).getBlock().getState();
+                        rail = rail.getLocation().add(-1, 1, 0).getBlock();
                         goingDir = 3;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(1, 0, 0));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                        locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(1, 0, 0).getBlock().getState();
+                        rail = rail.getLocation().add(1, 0, 0).getBlock();
                         goingDir = 1;
                     }
                     else return;
                     break;
                 case ASCENDING_SOUTH:
-                    if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 1, 1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 1, 1));
+                    if(SmartCart.util.isRail(rail.getLocation().add(0, 1, 1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 1, 1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 1, 1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 1, 1).getBlock();
                         goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(((Block)rail).getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(((Block)rail).getLocation().add(0, 0, -1));
+                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                        locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
-                        rail = (Rail)((Block)rail).getLocation().add(0, 0, -1).getBlock().getState();
+                        rail = rail.getLocation().add(0, 0, -1).getBlock();
                         goingDir = 1;
                     }
                     else return;
