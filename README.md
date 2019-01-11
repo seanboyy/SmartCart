@@ -25,7 +25,7 @@ Below is a list of currently supported settings and values.  If you would like t
 
 | Setting | Example | Description |
 |:--------|:-------:|:------------|
-| $AMT | <code>$AMT:2</code> | Amount - used for spawning trains. If less than one, will be one. If greater than server max, will be server max. |
+| $AMT | <code>$AMT:N2</code> | Amount - used for spawning trains. Tries to spawn a number of carts opposite the direction specified, then launches the assembled train.  If less than one, will be one. If greater than server max, will be server max. See below for more information |
 | $HOLD | <code>$HOLD</code> | Hold - pauses the minecart while the sign with $HOLD is powered by redstone. Once power is removed, the cart releases |
 | $LOCK | <code>$LOCK</code> | Lock - Makes players unable to leave cart until unlocked or the cart is destroyed |
 | $UNLOCK | <code>$UNLOCK</code> | Unlock - Unlocks the cart, allowing players to leave the cart |
@@ -52,25 +52,20 @@ This can be slightly confusing, so here is a full explanation.  With SmartCart, 
 
 #### Spawning
 
-Apply a redstone signal to a gray wool block. If there is a sign nearby with $AMT:# on it, that many carts will try to spawn. If there is no such sign, it will only spawn one cart.
+Apply a redstone signal to a gray wool block with an $AMT sign near it. If there is no $AMT sign, nothing will happen.
 
-Carts will try to spawn in a certain direction depending on what track is nearby, as well as what track they are on.
-The following is an enumeration of expectations based upon the [shape](https://minecraft.gamepedia.com/Rail#Block_states) of the track
+Carts will spawn opposite the direciton specified in the $AMT sign.
 
-- North-South: will try south first, then north
-- East-West: will try west first, then east
-- North-East: will try east first, then north
-- North-West: will try west first, then north
-- South-East: will try south first, then east
-- South-West: will try south first, then west
-- Ascending north: same as North-South
-- Ascending south: same as North-South
-- Ascending east: same as East-West
-- Ascending west: same as East-West
+Immediately after spawning, the carts will attempt to move in the direction specified in the $AMT sign.
 
 #### Behaviour
 
 All carts in a train move together. All actions that affect one cart affect all carts.
+
+Trains cannot do everything that normal carts can do.
+
+- Example 1
+- Example 2
 
 
 
@@ -98,7 +93,7 @@ The following config.yml options are available:
 | kill_block_material | "YELLOW_WOOL" | A block with this material will kill carts |
 | slow_block_material | "ORANGE_WOOL" | A block with this material will slow carts |
 | spawn_block_material | "BLACK_WOOL" | A block with this material will spawn carts once a redstone signal is applied |
-| train_spawn_block_material | "GRAY_WOOL" | A block with this material will spawn a series of carts in a line, according to a sign below it. If no sign is present, just spawns one cart. Uses redstone to activate |
+| train_spawn_block_material | "GRAY_WOOL" | A block with this material will spawn a series of carts in a line, according to a sign below it. Uses redstone to activate |
 | max_train_length | 10 | $AMT signs with values greater than this will instead produce this many carts |
 | empty_cart_timer | 10 | Number of seconds before an empty cart will despawn |
 | empty_cart_timer_ignore_storagemincart | true | empty_cart_timer is ignored for storage carts if true |
