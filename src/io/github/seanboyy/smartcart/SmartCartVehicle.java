@@ -37,8 +37,8 @@ class SmartCartVehicle{
     private double configSpeed = SmartCart.config.getDouble("normal_cart_speed");
     private String tag = "";
     private boolean held = false;
-    private boolean doOnceSet = false;
-    private boolean doOnceRelease = false;
+    boolean doOnceSet = false;
+    boolean doOnceRelease = false;
 
     SmartCartVehicle(Minecart vehicle){
         cart = vehicle;
@@ -55,7 +55,7 @@ class SmartCartVehicle{
     double getConfigSpeed() {
         return configSpeed;
     }
-    private void setConfigSpeed(Double speed) {
+    void setConfigSpeed(Double speed) {
         configSpeed = speed;
     }
     private BlockMaterial getPreviousMaterial() {
@@ -75,13 +75,13 @@ class SmartCartVehicle{
     boolean isHeld() {
         return held;
     }
-    private void setHeld(boolean held){
+    void setHeld(boolean held){
         this.held = held;
     }
     boolean isLocked() {
         return locked;
     }
-    private void setLocked(boolean locked){
+    void setLocked(boolean locked){
         this.locked = locked;
     }
     void setTag(String tag){
@@ -90,10 +90,10 @@ class SmartCartVehicle{
     String getTag() {
         return tag;
     }
-    private void setPreviousVelocity(Vector oldVelocity){
+    void setPreviousVelocity(Vector oldVelocity){
         previousVelocity = new Vector(oldVelocity.getX(), oldVelocity.getY(), oldVelocity.getZ());
     }
-    private Vector getPreviousVelocity(){
+    Vector getPreviousVelocity(){
         return previousVelocity;
     }
 
@@ -136,7 +136,7 @@ class SmartCartVehicle{
     }
 
     // Returns the block beneath the rail
-    private Block getBlockBeneath() {
+    Block getBlockBeneath() {
         return getCart().getLocation().add(0D, -1D, 0D).getBlock();
     }
 
@@ -334,8 +334,7 @@ class SmartCartVehicle{
     }
 
     // Find out if the cart is headed towards or away from the middle of the current block
-    private boolean isLeavingBlock() {
-
+    boolean isLeavingBlock() {
         // Gotta check to make sure this exists first
         if (getPreviousLocation() == null) return false;
         // If we just moved to a new block, the previous location is invalid for this check

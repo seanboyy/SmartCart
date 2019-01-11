@@ -67,7 +67,10 @@ public class SmartCartListener implements Listener {
         train.leadCart.saveCurrentLocation();
         if(train.leadCart.getCart().isDead() || train.leadCart.isNotOnRail()) return;
         if(train.leadCart.getCart().isEmpty() || train.leadCart.getPassenger() != null && train.leadCart.getPassenger().getType() != EntityType.PLAYER) return;
-        if(train.leadCart.isNewBlock()) train.readControlSign();
+        if(train.leadCart.isNewBlock()) train.leadCart.readControlSign();
+        for(SmartCartTrainVehicle followCart : train.followCarts){
+            if(followCart.isNewBlock()) followCart.readControlSign();
+        }
         if(train.leadCart.isHeld()){
             train.leadCart.getCart().setVelocity(new Vector(0, 0, 0));
             for(SmartCartTrainVehicle trainVehicle : train.followCarts){
