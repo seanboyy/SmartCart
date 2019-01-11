@@ -1,10 +1,10 @@
 //
-// SmartCart copyright 2015 Ian Clark
+// smartcart copyright 2015 Ian Clark
 //
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
@@ -24,39 +24,63 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class SmartCartListener implements Listener {
 
-
     private SmartCart plugin;
-
 
     SmartCartListener(SmartCart plugin) {
         this.plugin = plugin;
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
     }
 
-
     @EventHandler
     public void onVehicleUpdate(VehicleUpdateEvent event) {
         Vehicle vehicle = event.getVehicle();
         // Return if vehicle is not a minecart
         if (!(vehicle instanceof Minecart)) return;
-        SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
-        cart.saveCurrentLocation();
-        if (cart.getCart().getPassengers().isEmpty() && !cart.isInTrain()) cart.setEmptyCartTimer();
-        else cart.resetEmptyCartTimer();
-        // Return if minecart is marked for removal, or off rails for any reason
-        if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-        // Return if it isn't a player in the cart
-        if (!cart.isInTrain() && (cart.getCart().getPassengers().isEmpty() || cart.getCart().getPassengers().get(0) != null && cart.getCart().getPassengers().get(0).getType() != EntityType.PLAYER)) return;
-        if (cart.isNewBlock()) cart.readControlSign();
-        if(cart.isHeld()) cart.getCart().setVelocity(new Vector(0, 0, 0));
-        if (cart.isOnControlBlock()) cart.executeControl();
-        else {
-            cart.setPreviousMaterial(null);
-            cart.setSpeed(cart.getConfigSpeed());
+        SmartCartVehicle cart = SmartCart.util.getCartFromList(vehicle.getEntityId());
+        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
+        if(trainCart != null){
+            if(trainCart.isLeadCart())
+                plugin.getServer().getPluginManager().callEvent(new TrainUpdateEvent(SmartCart.util.getTrain(trainCart)));
+        }
+        if(cart != null){
+            cart.saveCurrentLocation();
+            if (cart.getCart().getPassengers().isEmpty()) cart.setEmptyCartTimer();
+            else cart.resetEmptyCartTimer();
+            if (cart.getCart().isDead() || cart.isNotOnRail()) return;
+            if(cart.getCart().isEmpty() || cart.getPassenger() != null && cart.getPassenger().getType() != EntityType.PLAYER) return;
+            if (cart.isNewBlock()) cart.readControlSign();
+            if (cart.isHeld()) cart.getCart().setVelocity(new Vector(0, 0, 0));
+            if (cart.isOnControlBlock()) cart.executeControl();
+            else {
+                cart.setPreviousMaterial(null);
+                cart.setSpeed(cart.getConfigSpeed());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onTrainUpdate(TrainUpdateEvent event){
+        SmartCartTrain train = event.getTrain();
+        train.leadCart.saveCurrentLocation();
+        if(train.leadCart.getCart().isDead() || train.leadCart.isNotOnRail()) return;
+        if(train.leadCart.getCart().isEmpty() || train.leadCart.getPassenger() != null && train.leadCart.getPassenger().getType() != EntityType.PLAYER) return;
+        if(train.leadCart.isNewBlock()) train.readControlSign();
+        if(train.leadCart.isHeld()){
+            train.leadCart.getCart().setVelocity(new Vector(0, 0, 0));
+            for(SmartCartTrainVehicle trainVehicle : train.followCarts){
+                trainVehicle.getCart().setVelocity(new Vector(0, 0, 0));
+            }
+        }
+        if(train.leadCart.isOnControlBlock()) train.executeControl();
+        else{
+            train.leadCart.setPreviousMaterial(null);
+        }
+        for(SmartCartTrainVehicle trainVehicle : train.followCarts){
+            trainVehicle.saveCurrentLocation();
+            trainVehicle.setSpeed(train.leadCart.getConfigSpeed());
         }
     }
 
@@ -64,9 +88,25 @@ public class SmartCartListener implements Listener {
     public void onVehicleExit(VehicleExitEvent event) {
         Vehicle vehicle = event.getVehicle();
         if (!(vehicle instanceof Minecart)) return;
-        SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
-        if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-        if (cart.isLocked()) event.setCancelled(true);
+        SmartCartVehicle cart = SmartCart.util.getCartFromList(vehicle.getEntityId());
+        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
+        if(cart != null) {
+            if (cart.getCart().isDead() || cart.isNotOnRail()) return;
+            if (cart.isLocked()) event.setCancelled(true);
+        }
+        if(trainCart != null){
+            if(trainCart.getCart().isDead() || trainCart.isNotOnRail()) return;
+            if(trainCart.isLocked()) event.setCancelled(true);
+            if(!trainCart.isLeadCart()) return;
+            SmartCartTrain train = SmartCart.util.getTrain(trainCart);
+            if(train.shouldKillTrain()){
+                train.leadCart.remove(true);
+                for(SmartCartTrainVehicle _trainVehicle : train.followCarts){
+                    _trainVehicle.remove(true);
+                }
+                SmartCart.util.removeTrain(train);
+            }
+        }
     }
 
     @EventHandler
@@ -76,18 +116,23 @@ public class SmartCartListener implements Listener {
         if (!(vehicle instanceof Minecart)) return;
         // Return if it wasn't a player that entered
         if (event.getEntered().getType() != EntityType.PLAYER) return;
+        /*
+        Why is this section necessary? Future use stuff?
         SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
         // Return if minecart is marked for removal, or off rails for any reason
         if (cart.getCart().isDead() || cart.isNotOnRail()) return;
+        */
     }
-
 
     @EventHandler
     public void onVehicleDestroyed(VehicleDestroyEvent event) {
         Vehicle vehicle = event.getVehicle();
-        if (vehicle instanceof Minecart) SmartCart.util.getCartFromList((Minecart) vehicle).remove(false);
+        if(!(vehicle instanceof Minecart)) return;
+        SmartCartVehicle cart = SmartCart.util.getCartFromList(vehicle.getEntityId());
+        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
+        if(cart != null) cart.remove(false);
+        if(trainCart != null) trainCart.remove(false);
     }
-
 
     @EventHandler
     public void onBlockRedstone(BlockRedstoneEvent event) {
@@ -272,62 +317,93 @@ public class SmartCartListener implements Listener {
             }
             int numberOfCarts = 1;
             //find out how many carts to spawn
+            int goingDir = -1;
             if (foundSignNearby) {
                 for(Block sign : foundSign){
                     Sign _sign = (Sign)sign.getState();
                     List<Pair<String, String>> signTokens = SmartCartVehicle.parseSign(_sign);
                     for(Pair<String, String> pair : signTokens){
                         if(pair.left().equals("$AMT")){
-                            int temp = Integer.parseInt(pair.right());
+                            int temp = pair.right().length() >= 2 && Character.isLetter(pair.right().charAt(0))? Integer.parseInt(pair.right().substring(1)) : 1;
                             if(temp < 1) temp = 1;
                             if(temp > SmartCart.config.getInt("max_train_length")) temp = SmartCart.config.getInt("max_train_length");
                             numberOfCarts = temp;
+                            switch(pair.right().charAt(0)){
+                                case 'N':
+                                    goingDir = 2;
+                                    break;
+                                case 'E':
+                                    goingDir = 3;
+                                    break;
+                                case 'S':
+                                    goingDir = 0;
+                                    break;
+                                case 'W':
+                                    goingDir = 1;
+                                    break;
+                            }
                             break;
                         }
                     }
                 }
             }
+            else return;
             //find out where to place the carts
             ArrayList<Location> trainPlaces = new ArrayList<>();
-            ArrayList<Minecart> trainCarts = new ArrayList<>();
             trainPlaces.add(block.getLocation());
-            findNeighborRails(trainPlaces, block, null, numberOfCarts, -1);
+            findNeighborRails(trainPlaces, block, null, numberOfCarts - 1, goingDir);
             //place first cart
-            Minecart cart = SmartCart.util.spawnCart(trainPlaces.get(0).getBlock()).getCart();
-            if (cart == null) return;
-            trainCarts.add(cart);
-            SmartCartVehicle smartCart = SmartCart.util.getCartFromList(cart);
-            UUID trainId = smartCart.setTrainId();
-            smartCart.setInTrain(true);
+            SmartCartTrainVehicle trainCart = SmartCart.util.spawnTrainCart(trainPlaces.get(0).getBlock());
+            if(trainCart.getCart() == null) return;
+            trainCart.setLeadCart(true);
+            SmartCartTrain train = new SmartCartTrain(trainCart);
             //place the rest of the carts
             for(int i = 1; i < trainPlaces.size(); ++i){
-                cart = SmartCart.util.spawnCart(trainPlaces.get(i).getBlock()).getCart();
-                if(cart == null) return;
-                smartCart = SmartCart.util.getCartFromList(cart);
-                smartCart.setInTrain(true);
-                smartCart.setTrainId(trainId);
-                trainCarts.add(cart);
+                SmartCartTrainVehicle followCart = SmartCart.util.spawnTrainCart(trainPlaces.get(i).getBlock());
+                followCart.setLeadCart(false);
+                if(followCart.getCart() == null) return;
+                train.followCarts.add(followCart);
             }
             //attach players nearby
             double r = SmartCart.config.getDouble("pickup_radius");
-            for(Minecart minecart : trainCarts) {
-                for (Entity entity : minecart.getNearbyEntities(r, r, r)) {
-                    if (entity instanceof Player && minecart.getPassengers().isEmpty() && entity.getVehicle() == null)
-                        minecart.addPassenger(entity);
+            for(Entity entity : train.leadCart.getCart().getNearbyEntities(r, r, r)){
+                if(entity instanceof Player && train.leadCart.getCart().isEmpty() && entity.getVehicle() == null) train.leadCart.getCart().addPassenger(entity);
+            }
+            for(SmartCartTrainVehicle trainVehicle : train.followCarts) {
+                for (Entity entity : trainVehicle.getCart().getNearbyEntities(r, r, r)) {
+                    if (entity instanceof Player && trainVehicle.getCart().getPassengers().isEmpty() && entity.getVehicle() == null)
+                        trainVehicle.getCart().addPassenger(entity);
                 }
             }
-            //launch carts
-            if(foundSignNearby)
-                for(Block sign : foundSign){
-                    SmartCart.util.getCartFromList(trainCarts.get(0)).executeSign(sign);
-                }
-            else SmartCart.util.sendMessage(trainCarts.get(0).getPassengers().get(0), "Move in the direction you wish the train to go");
+            SmartCart.util.addTrain(train);
+            //do the rest of the sign
+            for(Block sign : foundSign){
+                train.executeSign(sign);
+            }
+            //move the train in the correct direction
+            switch(goingDir){
+                case 0:
+                    //send train south
+                    train.setVelocity(0, 1);
+                    break;
+                case 1:
+                    //send train west
+                    train.setVelocity(-1, 0);
+                    break;
+                case 2:
+                    //send train north
+                    train.setVelocity(0, -1);
+                    break;
+                case 3:
+                    //send train east
+                    train.setVelocity(1, 0);
+                    break;
+            }
         }
     }
 
     /*
         From Dir:
-        -1 = null
         0 = north
         1 = east
         2 = south
@@ -546,97 +622,85 @@ public class SmartCartListener implements Listener {
             switch(((Rail)rail.getBlockData()).getShape()){
                 case NORTH_SOUTH:
                     //look south
-                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, 1).getBlock();
-                        goingDir = 2;
                     }
                     //otherwise look north
-                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, -1).getBlock();
-                        goingDir = 0;
                     }
                     //this is the only rail.
                     else return;
                     break;
                 case EAST_WEST:
                     //look west
-                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                    if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                        goingDir = 3;
                     }
                     //look east
-                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(1, 0, 0).getBlock();
-                        goingDir = 1;
                     }
                     //this is the only rail
                     else return;
                     break;
                 case NORTH_EAST:
-                    if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                    if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(1, 0, 0).getBlock();
-                        goingDir = 1;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, -1).getBlock();
-                        goingDir = 0;
                     }
                     else return;
                     break;
                 case NORTH_WEST:
-                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                    if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                        goingDir = 3;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, -1).getBlock();
-                        goingDir = 0;
                     }
                     else return;
                     break;
                 case SOUTH_EAST:
-                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, 1).getBlock();
-                        goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(1, 0, 0).getBlock();
-                        goingDir = 1;
                     }
                     else return;
                     break;
                 case SOUTH_WEST:
-                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, 1).getBlock();
-                        goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
+                    else if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                        goingDir = 3;
                     }
                     else return;
                     break;
@@ -645,58 +709,50 @@ public class SmartCartListener implements Listener {
                         locations.add(rail.getLocation().add(-1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                        goingDir = 3;
                     }
                     else if(SmartCart.util.isRail(rail.getLocation().add(1, 1, 0).getBlock())){
                         locations.add(rail.getLocation().add(1, 1, 0));
                         parent = rail;
                         rail = rail.getLocation().add(1, 1, 0).getBlock();
-                        goingDir = 1;
                     }
                     else return;
                     break;
                 case ASCENDING_NORTH:
-                    if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
+                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, 1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, 1).getBlock();
-                        goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 1, -1).getBlock())){
+                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 1, -1).getBlock())){
                         locations.add(rail.getLocation().add(0, 1, -1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 1, -1).getBlock();
-                        goingDir = 0;
                     }
                     else return;
                     break;
                 case ASCENDING_WEST:
-                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 1, 0).getBlock())){
+                    if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 1, 0).getBlock())){
                         locations.add(rail.getLocation().add(-1, 1, 0));
                         parent = rail;
                         rail = rail.getLocation().add(-1, 1, 0).getBlock();
-                        goingDir = 3;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
+                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
                         locations.add(rail.getLocation().add(1, 0, 0));
                         parent = rail;
                         rail = rail.getLocation().add(1, 0, 0).getBlock();
-                        goingDir = 1;
                     }
                     else return;
                     break;
                 case ASCENDING_SOUTH:
-                    if(SmartCart.util.isRail(rail.getLocation().add(0, 1, 1).getBlock())){
+                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 1, 1).getBlock())){
                         locations.add(rail.getLocation().add(0, 1, 1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 1, 1).getBlock();
-                        goingDir = 2;
                     }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
+                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
                         locations.add(rail.getLocation().add(0, 0, -1));
                         parent = rail;
                         rail = rail.getLocation().add(0, 0, -1).getBlock();
-                        goingDir = 1;
                     }
                     else return;
                     break;

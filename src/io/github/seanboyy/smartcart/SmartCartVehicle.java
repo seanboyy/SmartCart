@@ -1,10 +1,10 @@
 //
-// SmartCart copyright 2015 Ian Clark
+// smartcart copyright 2015 Ian Clark
 //
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,13 +19,12 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class SmartCartVehicle{
 
-    private Minecart cart;
+    Minecart cart;
     private BlockMaterial previousMaterial;
     private Location currentLocation;
     private Location previousLocation;
@@ -40,14 +39,11 @@ class SmartCartVehicle{
     private boolean held = false;
     private boolean doOnceSet = false;
     private boolean doOnceRelease = false;
-    private boolean inTrain = false;
-    private UUID trainId = new UUID(0, 0);
 
     SmartCartVehicle(Minecart vehicle){
         cart = vehicle;
         cart.setMaxSpeed(SmartCart.config.getDouble("max_cart_speed"));
     }
-
 
     // Accessors
     Minecart getCart() {
@@ -55,17 +51,6 @@ class SmartCartVehicle{
     }
     private Location getPreviousLocation() {
         return previousLocation;
-    }
-    UUID getTrainId() {
-        return trainId;
-    }
-    //ONLY EVER CALL THIS ONCE PER TRAIN
-    UUID setTrainId(){
-        trainId = UUID.randomUUID();
-        return trainId;
-    }
-    void setTrainId(UUID uuid){
-        trainId = uuid;
     }
     double getConfigSpeed() {
         return configSpeed;
@@ -96,12 +81,6 @@ class SmartCartVehicle{
     boolean isLocked() {
         return locked;
     }
-    boolean isInTrain() {
-        return inTrain;
-    }
-    void setInTrain(boolean inTrain){
-        this.inTrain = inTrain;
-    }
     private void setLocked(boolean locked){
         this.locked = locked;
     }
@@ -118,24 +97,20 @@ class SmartCartVehicle{
         return previousVelocity;
     }
 
-
-
     // These methods just pass through to the Minecart class
     int getEntityId() {
         return getCart().getEntityId();
     }
-    private Entity getPassenger() {
+    Entity getPassenger() {
         return getCart().getPassengers().isEmpty() ? null : getCart().getPassengers().get(0);
     }
     Location getLocation() {
         return getCart().getLocation();
     }
 
-
     boolean isNewBlock() {
         return !Arrays.equals(currentRoughLocation, previousRoughLocation);
     }
-
 
     void setEmptyCartTimer() {
         if(
@@ -156,29 +131,24 @@ class SmartCartVehicle{
         }
     }
 
-
     void resetEmptyCartTimer() {
         emptyCartTimer = 0;
     }
-
 
     // Returns the block beneath the rail
     private Block getBlockBeneath() {
         return getCart().getLocation().add(0D, -1D, 0D).getBlock();
     }
 
-
     // Returns true only if cart is in a rail block
     boolean isNotOnRail() {
         return getCart().getLocation().getBlock().getType() != Material.RAIL;
     }
 
-
     // Returns true if the cart is directly above a control block
     boolean isOnControlBlock() {
         return SmartCart.util.isControlBlock( getCart().getLocation().add(0D, -1D, 0D).getBlock() );
     }
-
 
     // This looks two blocks below the rail for a sign. Sets the signText variable to
     //   the sign contents if the sign is a valid control sign, otherwise "".
@@ -203,12 +173,10 @@ class SmartCartVehicle{
         if(SmartCart.util.isSign(block9)) executeSign(block9);
     }
 
-
-    private boolean isMoving() {
+    boolean isMoving() {
         Vector velocity = getCart().getVelocity();
         return (velocity.getX() != 0D || velocity.getZ() != 0D);
     }
-
 
     // Sets the speed to the max, in the direction the cart is already travelling
     void setSpeed(double speed) {
@@ -228,7 +196,6 @@ class SmartCartVehicle{
         }
     }
 
-
     // Destroy the cart (from plugin & server)
     void remove(boolean kill) {
         Entity passenger = getPassenger();
@@ -247,45 +214,43 @@ class SmartCartVehicle{
         if (kill) getCart().remove();
     }
 
-
     private void transferSettings(SmartCartVehicle newSC) {
         newSC.setConfigSpeed(configSpeed);
         newSC.setTag(tag);
     }
 
-
     void executeControl() {
         if (getCart().getPassengers().isEmpty()) return;
         Block block = getBlockBeneath();
         if(SmartCart.util.isSlowBlock(block)){
-                setPreviousMaterial(BlockMaterial.SlowBlock);
-                setSpeed(SmartCart.config.getDouble("slow_cart_speed"));
-            }
+            setPreviousMaterial(BlockMaterial.SlowBlock);
+            setSpeed(SmartCart.config.getDouble("slow_cart_speed"));
+        }
         if(SmartCart.util.isKillBlock(block)){
-                if(isLeavingBlock()) {
-                    Entity passenger = cart.getPassengers().get(0);
-                    remove(true);
-                    Block block1 = getCart().getLocation().add(0, -2, 0).getBlock();
-                    Block block2 = getCart().getLocation().add(1, -1, 0).getBlock();
-                    Block block3 = getCart().getLocation().add(-1, -1, 0).getBlock();
-                    Block block4 = getCart().getLocation().add(0, -1, 1).getBlock();
-                    Block block5 = getCart().getLocation().add(1, -1, -1).getBlock();
-                    Block block6 = getCart().getLocation().add(1, 0, 0).getBlock();
-                    Block block7 = getCart().getLocation().add(-1, 0, 0).getBlock();
-                    Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
-                    Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
-                    if (SmartCart.util.isSign(block1)) executeEJT(passenger, block1);
-                    if (SmartCart.util.isSign(block2)) executeEJT(passenger, block2);
-                    if (SmartCart.util.isSign(block3)) executeEJT(passenger, block3);
-                    if (SmartCart.util.isSign(block4)) executeEJT(passenger, block4);
-                    if (SmartCart.util.isSign(block5)) executeEJT(passenger, block5);
-                    if (SmartCart.util.isSign(block6)) executeEJT(passenger, block6);
-                    if (SmartCart.util.isSign(block7)) executeEJT(passenger, block7);
-                    if (SmartCart.util.isSign(block8)) executeEJT(passenger, block8);
-                    if (SmartCart.util.isSign(block9)) executeEJT(passenger, block9);
-                }
-                else setSpeed(0.1D);
+            if(isLeavingBlock()) {
+                Entity passenger = cart.getPassengers().get(0);
+                remove(true);
+                Block block1 = getCart().getLocation().add(0, -2, 0).getBlock();
+                Block block2 = getCart().getLocation().add(1, -1, 0).getBlock();
+                Block block3 = getCart().getLocation().add(-1, -1, 0).getBlock();
+                Block block4 = getCart().getLocation().add(0, -1, 1).getBlock();
+                Block block5 = getCart().getLocation().add(1, -1, -1).getBlock();
+                Block block6 = getCart().getLocation().add(1, 0, 0).getBlock();
+                Block block7 = getCart().getLocation().add(-1, 0, 0).getBlock();
+                Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
+                Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
+                if (SmartCart.util.isSign(block1)) executeEJT(passenger, block1);
+                if (SmartCart.util.isSign(block2)) executeEJT(passenger, block2);
+                if (SmartCart.util.isSign(block3)) executeEJT(passenger, block3);
+                if (SmartCart.util.isSign(block4)) executeEJT(passenger, block4);
+                if (SmartCart.util.isSign(block5)) executeEJT(passenger, block5);
+                if (SmartCart.util.isSign(block6)) executeEJT(passenger, block6);
+                if (SmartCart.util.isSign(block7)) executeEJT(passenger, block7);
+                if (SmartCart.util.isSign(block8)) executeEJT(passenger, block8);
+                if (SmartCart.util.isSign(block9)) executeEJT(passenger, block9);
             }
+            else setSpeed(0.1D);
+        }
         if(SmartCart.util.isIntersectionBlock(block)) {
             if(getPreviousMaterial() == BlockMaterial.IntersectionBlock) {
                 Block blockAhead;
@@ -332,12 +297,10 @@ class SmartCartVehicle{
         }
     }
 
-
     String getPassengerName() {
         if (getCart().getPassengers().isEmpty()) return "None";
         return getCart().getPassengers().get(0).getName();
     }
-
 
     // Returns the block directly ahead of the passenger
     private Block getBlockAheadPassenger() {
@@ -402,7 +365,7 @@ class SmartCartVehicle{
     }
 
     private void sendPassengerMessage(String message, boolean prefix){
-        if(prefix) message = "§6[SmartCart] §7" + message;
+        if(prefix) message = "§6[smartcart] §7" + message;
         else message = "§7" + message;
         Entity entity = getPassenger();
         if(entity instanceof Player) ((Player)entity).sendRawMessage(message);
@@ -556,7 +519,7 @@ class SmartCartVehicle{
                     doOnceRelease = false;
                     doOnceSet = true;
                 }
-                else if(/*!SmartCart.util.isPoweredSign(block)) &&*/ !doOnceRelease){
+                else if(/*!smartcart.util.isPoweredSign(block)) &&*/ !doOnceRelease){
                     setHeld(false);
                     if(getPreviousVelocity() != null) getCart().setVelocity(getPreviousVelocity());
                     setPreviousVelocity(cart.getVelocity());

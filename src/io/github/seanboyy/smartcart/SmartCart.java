@@ -1,10 +1,10 @@
 //
-// SmartCart copyright 2015 Ian Clark
+// smartcart copyright 2015 Ian Clark
 //
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -23,7 +23,7 @@ public class SmartCart extends JavaPlugin {
     @Override
     public void onEnable() {
         boolean success = true;
-        getLogger().info("Starting up SmartCart");
+        getLogger().info("Starting up smartcart");
         //plugin = this;
 
         // Generate the default config file
@@ -56,12 +56,12 @@ public class SmartCart extends JavaPlugin {
         this.getCommand("sc").setExecutor(new CommandExecutorUtil(this));
         this.getCommand("scSetTag").setExecutor(new CommandSetTag());
         getLogger().info("done");
-        getLogger().info(success ? "Successfully activated SmartCart" : "Error loading SmartCart. Check the config");
+        getLogger().info(success ? "Successfully activated smartcart" : "Error loading smartcart. Check the config");
     }
 
 
     @Override
     public void onDisable() {
-        getLogger().info("Successfully deactivated SmartCart");
+        getLogger().info("Successfully deactivated smartcart");
     }
 }

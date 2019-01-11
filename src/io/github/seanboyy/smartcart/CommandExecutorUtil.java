@@ -1,9 +1,9 @@
-// SmartCart copyright 2015 Ian Clark
+// smartcart copyright 2015 Ian Clark
 //
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -21,6 +21,7 @@ public class CommandExecutorUtil implements CommandExecutor {
         this.plugin = plugin;
     }
 
+    //TODO: Fix this class so it captures trains
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -88,7 +89,7 @@ public class CommandExecutorUtil implements CommandExecutor {
                         }
                 }
             }
-            sender.sendMessage("SmartCart console control not yet implemented :(");
+            sender.sendMessage("smartcart console control not yet implemented :(");
             return true;
         }
         else {

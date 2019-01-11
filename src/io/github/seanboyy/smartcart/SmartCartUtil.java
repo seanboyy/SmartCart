@@ -1,10 +1,10 @@
 //
-// SmartCart copyright 2015 Ian Clark
+// smartcart copyright 2015 Ian Clark
 //
 // Distributed under the MIT License
 // http://opensource.org/licenses/MIT
 //
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -18,12 +18,60 @@ import java.util.List;
 class SmartCartUtil {
 
     private ArrayList<SmartCartVehicle> cartList = new ArrayList<>();
+    private ArrayList<SmartCartTrainVehicle> trainCartList = new ArrayList<>();
+    private ArrayList<SmartCartTrain> trainList = new ArrayList<>();
     private SmartCart plugin;
 
     SmartCartUtil(SmartCart plugin) {
         this.plugin = plugin;
     }
     // Accessors!
+
+    ArrayList<SmartCartTrain> getTrainList(){
+        return new ArrayList<>(trainList);
+    }
+
+    ArrayList<SmartCartTrain> getTrainList(World world){
+        ArrayList<SmartCartTrain> worldTrains = new ArrayList<>();
+        for(SmartCartTrain train : trainList){
+            if(train.leadCart.getLocation().getWorld() == world) worldTrains.add(train);
+        }
+        return worldTrains;
+    }
+
+    SmartCartTrain getTrain(SmartCartTrainVehicle vehicle){
+        for(SmartCartTrain train : trainList){
+            if(train.leadCart.getEntityId() == vehicle.getEntityId()) return train;
+            for(SmartCartTrainVehicle trainVehicle : train.followCarts){
+                if(trainVehicle.getEntityId() == vehicle.getEntityId()) return train;
+            }
+        }
+        return null;
+    }
+
+    SmartCartTrain getTrain(int entityID){
+        for(SmartCartTrain train : trainList){
+            if(train.leadCart.getEntityId() == entityID) return train;
+            for(SmartCartTrainVehicle trainVehicle : train.followCarts){
+                if(trainVehicle.getEntityId() == entityID) return train;
+            }
+        }
+        return null;
+    }
+
+    void addTrain(SmartCartTrain train){
+        trainList.add(train);
+    }
+
+    void removeTrain(SmartCartTrain deadTrain){
+        for(SmartCartTrain train : trainList){
+            if(train.leadCart.getEntityId() == deadTrain.leadCart.getEntityId()){
+                trainList.remove(train);
+                break;
+            }
+        }
+    }
+
     ArrayList<SmartCartVehicle> getCartList() {
         return new ArrayList<>(cartList);
     }
@@ -35,6 +83,18 @@ class SmartCartUtil {
         for (SmartCartVehicle cart : cartList)
             if (cart.getLocation().getWorld() == world) worldCarts.add(cart);
         return worldCarts;
+    }
+
+    ArrayList<SmartCartTrainVehicle> getTrainCartList(){
+        return new ArrayList<>(trainCartList);
+    }
+
+    ArrayList<SmartCartTrainVehicle> getTrainCartList(World world){
+        ArrayList<SmartCartTrainVehicle> worldTrainCarts = new ArrayList<>();
+        for(SmartCartTrainVehicle cart : trainCartList) {
+            if (cart.getLocation().getWorld() == world) worldTrainCarts.add(cart);
+        }
+        return worldTrainCarts;
     }
 
     SmartCartVehicle getCartFromList(Minecart requestedCart) {
@@ -57,6 +117,23 @@ class SmartCartUtil {
         return null;
     }
 
+    private SmartCartTrainVehicle getTrainCartFromList(Minecart requestedCart){
+        for(SmartCartVehicle cart : cartList)
+            if(cart instanceof SmartCartTrainVehicle && cart.getEntityId() == requestedCart.getEntityId()) return (SmartCartTrainVehicle)cart;
+        SmartCartTrainVehicle newCart = new SmartCartTrainVehicle(requestedCart);
+        trainCartList.add(newCart);
+        return newCart;
+    }
+
+    SmartCartTrainVehicle getTrainCartFromList(int entityID){
+        for(SmartCartTrainVehicle cart : trainCartList){
+            if(cart.getEntityId() == entityID){
+                return cart;
+            }
+        }
+        return null;
+    }
+
     // Find & remove the cart from cartList
     void removeCart(SmartCartVehicle deadCart) {
         // Find the cart that is being removed
@@ -68,8 +145,23 @@ class SmartCartUtil {
         }
     }
 
+    void removeCart(SmartCartTrainVehicle deadCart){
+        for(SmartCartTrainVehicle cart : trainCartList){
+            if(cart.getEntityId() == deadCart.getEntityId()){
+                trainCartList.remove(cart);
+                break;
+            }
+        }
+    }
+
     void killCarts(ArrayList<SmartCartVehicle> removeCartList) {
         for (SmartCartVehicle cart : removeCartList) {
+            cart.remove(true);
+        }
+    }
+
+    void killTrainCarts(ArrayList<SmartCartTrainVehicle> removeCartList){
+        for(SmartCartTrainVehicle cart : removeCartList){
             cart.remove(true);
         }
     }
@@ -124,7 +216,7 @@ class SmartCartUtil {
 
     // Send a message to the player
     void sendMessage(Entity entity, String message) {
-        message = "§6[SmartCart] §7" + message;
+        message = "§6[smartcart] §7" + message;
         if (entity instanceof Player) ((Player) entity).sendRawMessage(message);
     }
 
@@ -284,6 +376,15 @@ class SmartCartUtil {
         return getCartFromList(cartAtBlock);
     }
 
+    SmartCartTrainVehicle spawnTrainCart(Block block){
+        Minecart cartAtBlock = getCartAtBlock(block);
+        if(isRail(block) && cartAtBlock == null){
+            Location loc = block.getLocation().add(0.5, 0, 0.5);
+            Minecart cart = loc.getWorld().spawn(loc, Minecart.class);
+            return getTrainCartFromList(cart);
+        }
+        return getTrainCartFromList(cartAtBlock);
+    }
 
     Block getElevatorBlock(Location loc) {
         Location cmdLoc = loc.clone();

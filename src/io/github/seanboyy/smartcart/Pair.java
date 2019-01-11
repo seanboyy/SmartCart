@@ -1,4 +1,4 @@
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 public class Pair<L, R> {
     private L left;

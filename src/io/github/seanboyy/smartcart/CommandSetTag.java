@@ -1,4 +1,4 @@
-package io.github.seanboyy.SmartCart;
+package io.github.seanboyy.smartcart;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,8 +28,10 @@ public class CommandSetTag implements CommandExecutor{
             ((Player) sender).sendRawMessage("§6[Smart Cart] §cNon minecart vehicles aren't supported\n" + help);
             return true;
         }
-        SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart)((Player)sender).getVehicle());
-        cart.setTag(args[0]);
+        SmartCartVehicle cart = SmartCart.util.getCartFromList((((Player)sender).getVehicle()).getEntityId());
+        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList((((Player)sender).getVehicle()).getEntityId());
+        if(cart != null) cart.setTag(args[0]);
+        if(trainCart != null) trainCart.setTag(args[0]);
         ((Player) sender).sendRawMessage("§6[Smart Cart] §7Set tag to §a" + args[0]);
         return true;
     }
