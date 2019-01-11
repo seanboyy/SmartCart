@@ -92,7 +92,7 @@ The following config.yml options are available:
 | max_cart_speed | 0.4 | The fastest a cart will travel.  Expect problems with higher values. |
 | slow_cart_speed | 0.1 | Adjust to change the speed when traveling over slowing blocks |
 | pickup_radius | 3 | How many blocks away a freshly spawned cart will look for a player to grab |
-| control_sign_prefix_regex | "\\s+SC: " | A sign with text matching this regex will be considered a control sign |
+| control_sign_prefix_regex | "^\\s\*SC: " | A sign with text matching this regex will be considered a control sign |
 | elevator_block_material | "RED_WOOL" | A block with this material will be treated as an elevator block |
 | intersection_block_material | "GREEN_WOOL" | A block with this material will be treated as an intersection block |
 | kill_block_material | "YELLOW_WOOL" | A block with this material will kill carts |
