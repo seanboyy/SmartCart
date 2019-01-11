@@ -64,9 +64,9 @@ class SmartCartUtil {
     }
 
     void removeTrain(SmartCartTrain deadTrain){
-        for(SmartCartTrain train : trainList){
-            if(train.leadCart.getEntityId() == deadTrain.leadCart.getEntityId()){
-                trainList.remove(train);
+        for(int i = 0; i < trainList.size(); ++i){
+            if(trainList.get(i).leadCart.getEntityId() == deadTrain.leadCart.getEntityId()){
+                trainList.remove(i);
                 break;
             }
         }
@@ -160,10 +160,16 @@ class SmartCartUtil {
         }
     }
 
-    void killTrainCarts(ArrayList<SmartCartTrainVehicle> removeCartList){
+    private void killTrainCarts(ArrayList<SmartCartTrainVehicle> removeCartList){
         for(SmartCartTrainVehicle cart : removeCartList){
             cart.remove(true);
         }
+    }
+
+    void killTrain(SmartCartTrain train){
+        removeTrain(train);
+        train.leadCart.remove(true);
+        killTrainCarts((ArrayList<SmartCartTrainVehicle>)train.followCarts);
     }
 
     boolean isControlBlock(Block block) {
@@ -234,6 +240,39 @@ class SmartCartUtil {
         return stringBuilder.toString();
     }
 
+    void sendFullCartList(ArrayList<SmartCartVehicle> cartList, ArrayList<SmartCartTrainVehicle> trainCartList, Entity entity){
+        int padID = 7;
+        int padWorld = 10;
+        int padLocation = 18;
+        int padPassenger = 20;
+        int padAge = 5;
+        String message = "\n" +
+                padRight("ID", padID) +
+                padRight("World", padWorld) +
+                padRight("Location", padLocation) +
+                padRight("Passenger", padPassenger) +
+                padRight("Age", padAge) +
+                "\n";
+        StringBuilder stringBuilder = new StringBuilder();
+        for (SmartCartVehicle cart : cartList) stringBuilder.
+                append(padRight(Integer.toString(cart.getEntityId()), padID)).
+                append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
+                append(padRight(getLocationString(cart.getLocation()), padLocation)).
+                append(padRight(cart.getPassengerName(), padPassenger)).
+                append(padRight(getAgeString(cart.getCart()), padAge)).
+                append("\n");
+        for (SmartCartTrainVehicle cart : trainCartList) stringBuilder.
+                append(padRight(Integer.toString(cart.getEntityId()), padID)).
+                append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
+                append(padRight(getLocationString(cart.getLocation()), padLocation)).
+                append(padRight(cart.getPassengerName(), padPassenger)).
+                append(padRight(getAgeString(cart.getCart()), padAge)).
+                append("\n");
+        message += stringBuilder.toString();
+        message += "Total: " + trainCartList.size() + cartList.size();
+        sendMessage(entity, message);
+    }
+
     // Send the provided list of carts to the provided entity
     void sendCartList(ArrayList<SmartCartVehicle> sendCartList, Entity entity) {
         // These values are used to format the columns
@@ -259,6 +298,35 @@ class SmartCartUtil {
                     append("\n");
         message += stringBuilder.toString();
         message += "Total: " + sendCartList.size();
+        sendMessage(entity, message);
+    }
+
+    void sendTrainCartList(ArrayList<SmartCartTrainVehicle> trainCartList, Entity entity){
+        int padID = 7;
+        int padWorld = 10;
+        int padLocation = 10;
+        int padPassenger = 18;
+        int padAge = 5;
+        int padIsLeadCart = 5;
+        String message = "\n"
+                + padRight("ID", padID)
+                + padRight("World", padWorld)
+                + padRight("Location", padLocation)
+                + padRight("Passenger", padPassenger)
+                + padRight("Age", padAge)
+                + padRight("Lead", padIsLeadCart)
+                + "\n";
+        StringBuilder stringBuilder = new StringBuilder();
+        for (SmartCartTrainVehicle cart : trainCartList) stringBuilder.
+                append(padRight(Integer.toString(cart.getEntityId()), padID)).
+                append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
+                append(padRight(getLocationString(cart.getLocation()), padLocation)).
+                append(padRight(cart.getPassengerName(), padPassenger)).
+                append(padRight(getAgeString(cart.getCart()), padAge)).
+                append(padRight(cart.isLeadCart() ? "Yes" : "No", padIsLeadCart)).
+                append("\n");
+        message += stringBuilder.toString();
+        message += "Total: " + trainCartList.size();
         sendMessage(entity, message);
     }
 
@@ -310,26 +378,6 @@ class SmartCartUtil {
 
     boolean isRail(Block block) {
         return block != null && block.getType() == Material.RAIL;
-    }
-
-    private boolean isWool(Block block){
-        return block != null && (
-                block.getType() == Material.RED_WOOL
-                        || block.getType() == Material.ORANGE_WOOL
-                        || block.getType() == Material.YELLOW_WOOL
-                        || block.getType() == Material.LIME_WOOL
-                        || block.getType() == Material.GREEN_WOOL
-                        || block.getType() == Material.CYAN_WOOL
-                        || block.getType() == Material.BLUE_WOOL
-                        || block.getType() == Material.PURPLE_WOOL
-                        || block.getType() == Material.MAGENTA_WOOL
-                        || block.getType() == Material.PINK_WOOL
-                        || block.getType() == Material.BROWN_WOOL
-                        || block.getType() == Material.WHITE_WOOL
-                        || block.getType() == Material.LIGHT_GRAY_WOOL
-                        || block.getType() == Material.GRAY_WOOL
-                        || block.getType() == Material.BLACK_WOOL
-                        || block.getType() == Material.LIGHT_BLUE_WOOL);
     }
 
     //public boolean isRail(Location loc) {
