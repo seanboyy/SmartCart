@@ -33,7 +33,7 @@ class SmartCartTrain{
         return true;
     }
 
-    private void sendPassengerMessage(String message, boolean prefix){
+    private void sendPassengersMessage(String message, boolean prefix){
         if(prefix) message = "§6[smartcart] §7" + message;
         else message = "§7" + message;
         Entity entity = leadCart.getPassenger();
@@ -51,14 +51,7 @@ class SmartCartTrain{
         for (Pair<String, String> pair : SmartCartVehicle.parseSign(sign)) {
             Pattern p;
             if (pair.left().equals("$SPD")) {
-                p = Pattern.compile("^\\d*\\.?\\d+");
-                double minSpeed = 0D;
-                double maxSpeed = SmartCart.config.getDouble("max_cart_speed");
-                if (!p.matcher(pair.right()).find() || Double.parseDouble(pair.right()) > maxSpeed || Double.parseDouble(pair.right()) < minSpeed) {
-                    sendPassengerMessage("Bad speed value: \"" + pair.right() + "\". Must be a numeric value (decimals OK) between "
-                            + minSpeed + " and " + maxSpeed + ".", true);
-                    return;
-                }
+                if(!leadCart.helperFunctionSPD(pair.right())) return;
                 leadCart.setConfigSpeed(Double.parseDouble(pair.right()));
             }
             if (pair.left().equals("$LOCK")){
@@ -91,16 +84,16 @@ class SmartCartTrain{
                     followCart.getCart().setDerailedVelocityMod(new Vector(1, y, 1));
                 }
             }
-            if (pair.left().equals("$MSG")) sendPassengerMessage(pair.right(), false);
+            if (pair.left().equals("$MSG")) sendPassengersMessage(pair.right(), false);
             if (pair.left().equals("&ENDs")) setTag(pair.right());
             if (pair.left().equals("$TAGs")) setTag(pair.right());
             if (pair.left().equals("$END")) {
                 setTag(pair.right());
-                sendPassengerMessage("Endpoint set to §a" + pair.right(), true);
+                sendPassengersMessage("Endpoint set to §a" + pair.right(), true);
             }
             if (pair.left().equals("$TAG")) {
                 setTag(pair.right());
-                sendPassengerMessage("Set tag to §a" + pair.right(), true);
+                sendPassengersMessage("Set tag to §a" + pair.right(), true);
             }
             if(pair.left().equals("$HOLD")) {
                 if(SmartCart.util.isPoweredSign(block) && !leadCart.doOnceSet){
@@ -110,7 +103,7 @@ class SmartCartTrain{
                     leadCart.doOnceRelease = false;
                     leadCart.doOnceSet = true;
                 }
-                else if(/*!smartcart.util.isPoweredSign(block)) &&*/ !leadCart.doOnceRelease){
+                else if(!leadCart.doOnceRelease){
                     leadCart.setHeld(false);
                     if(leadCart.getPreviousVelocity() != null) leadCart.getCart().setVelocity(leadCart.getPreviousVelocity());
                     leadCart.setPreviousVelocity(leadCart.getCart().getVelocity());
@@ -139,24 +132,9 @@ class SmartCartTrain{
                     followCart.remove(true);
                 }
                 SmartCart.util.removeTrain(this);
-                Block block1 = leadCart.getCart().getLocation().add(0, -2, 0).getBlock();
-                Block block2 = leadCart.getCart().getLocation().add(1, -1, 0).getBlock();
-                Block block3 = leadCart.getCart().getLocation().add(-1, -1, 0).getBlock();
-                Block block4 = leadCart.getCart().getLocation().add(0, -1, 1).getBlock();
-                Block block5 = leadCart.getCart().getLocation().add(1, -1, -1).getBlock();
-                Block block6 = leadCart.getCart().getLocation().add(1, 0, 0).getBlock();
-                Block block7 = leadCart.getCart().getLocation().add(-1, 0, 0).getBlock();
-                Block block8 = leadCart.getCart().getLocation().add(0, 0, 1).getBlock();
-                Block block9 = leadCart.getCart().getLocation().add(0, 0, -1).getBlock();
-                if (SmartCart.util.isSign(block1)) executeEJT(block1);
-                if (SmartCart.util.isSign(block2)) executeEJT(block2);
-                if (SmartCart.util.isSign(block3)) executeEJT(block3);
-                if (SmartCart.util.isSign(block4)) executeEJT(block4);
-                if (SmartCart.util.isSign(block5)) executeEJT(block5);
-                if (SmartCart.util.isSign(block6)) executeEJT(block6);
-                if (SmartCart.util.isSign(block7)) executeEJT(block7);
-                if (SmartCart.util.isSign(block8)) executeEJT(block8);
-                if (SmartCart.util.isSign(block9)) executeEJT(block9);
+                Block[] blocks = {null, null, null, null, null, null, null, null, null};
+                SmartCart.util.helperFunction6(blocks, leadCart.getCart().getLocation());
+                SmartCart.util.helperFunction7(this, blocks, null);
             }
             else {
                 leadCart.setSpeed(0.1D);
@@ -175,28 +153,21 @@ class SmartCartTrain{
         }
     }
 
-    void readControlSign() {
-        Block block1 = leadCart.getCart().getLocation().add(0, -2, 0).getBlock();
-        Block block2 = leadCart.getCart().getLocation().add(1, -1, 0).getBlock();
-        Block block3 = leadCart.getCart().getLocation().add(-1, -1, 0).getBlock();
-        Block block4 = leadCart.getCart().getLocation().add(0, -1, 1).getBlock();
-        Block block5 = leadCart.getCart().getLocation().add(1, -1, -1).getBlock();
-        Block block6 = leadCart.getCart().getLocation().add(1, 0, 0).getBlock();
-        Block block7 = leadCart.getCart().getLocation().add(-1, 0, 0).getBlock();
-        Block block8 = leadCart.getCart().getLocation().add(0, 0, 1).getBlock();
-        Block block9 = leadCart.getCart().getLocation().add(0, 0, -1).getBlock();
-        if(SmartCart.util.isSign(block1)) executeSign(block1);
-        if(SmartCart.util.isSign(block2)) executeSign(block2);
-        if(SmartCart.util.isSign(block3)) executeSign(block3);
-        if(SmartCart.util.isSign(block4)) executeSign(block4);
-        if(SmartCart.util.isSign(block5)) executeSign(block5);
-        if(SmartCart.util.isSign(block6)) executeSign(block6);
-        if(SmartCart.util.isSign(block7)) executeSign(block7);
-        if(SmartCart.util.isSign(block8)) executeSign(block8);
-        if(SmartCart.util.isSign(block9)) executeSign(block9);
-    }
-
-    private void executeEJT(Block block){
+    void executeEJT(Block block){
+        Sign sign = (Sign) block.getState();
+        List<Entity> passengers = new ArrayList<>();
+        if(leadCart.getPassenger() != null) passengers.add(leadCart.getPassenger());
+        for(SmartCartTrainVehicle followCart : followCarts){
+            if(followCart.getPassenger() != null) passengers.add(followCart.getPassenger());
+        }
+        for (Pair<String, String> pair : SmartCartVehicle.parseSign(sign)) {
+            if (pair.left().equals("$EJT") && pair.right().length() >= 2) {
+                int dist = SmartCartUtil.isInteger(pair.right().substring(1)) ? Integer.parseInt(pair.right().substring(1)) : 0;
+                for(Entity passenger : passengers) {
+                    SmartCartVehicle.helperFunctionEJT(pair.right(), passenger, dist);
+                }
+            }
+        }
 
     }
 }

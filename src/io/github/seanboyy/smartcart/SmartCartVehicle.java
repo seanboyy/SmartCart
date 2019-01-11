@@ -153,24 +153,7 @@ class SmartCartVehicle{
     // This looks two blocks below the rail for a sign. Sets the signText variable to
     //   the sign contents if the sign is a valid control sign, otherwise "".
     void readControlSign() {
-        Block block1 = getCart().getLocation().add(0, -2, 0).getBlock();
-        Block block2 = getCart().getLocation().add(1, -1, 0).getBlock();
-        Block block3 = getCart().getLocation().add(-1, -1, 0).getBlock();
-        Block block4 = getCart().getLocation().add(0, -1, 1).getBlock();
-        Block block5 = getCart().getLocation().add(1, -1, -1).getBlock();
-        Block block6 = getCart().getLocation().add(1, 0, 0).getBlock();
-        Block block7 = getCart().getLocation().add(-1, 0, 0).getBlock();
-        Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
-        Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
-        if(SmartCart.util.isSign(block1)) executeSign(block1);
-        if(SmartCart.util.isSign(block2)) executeSign(block2);
-        if(SmartCart.util.isSign(block3)) executeSign(block3);
-        if(SmartCart.util.isSign(block4)) executeSign(block4);
-        if(SmartCart.util.isSign(block5)) executeSign(block5);
-        if(SmartCart.util.isSign(block6)) executeSign(block6);
-        if(SmartCart.util.isSign(block7)) executeSign(block7);
-        if(SmartCart.util.isSign(block8)) executeSign(block8);
-        if(SmartCart.util.isSign(block9)) executeSign(block9);
+        SmartCart.util.helperFunction5(this, getCart().getLocation());
     }
 
     boolean isMoving() {
@@ -230,24 +213,9 @@ class SmartCartVehicle{
             if(isLeavingBlock()) {
                 Entity passenger = cart.getPassengers().get(0);
                 remove(true);
-                Block block1 = getCart().getLocation().add(0, -2, 0).getBlock();
-                Block block2 = getCart().getLocation().add(1, -1, 0).getBlock();
-                Block block3 = getCart().getLocation().add(-1, -1, 0).getBlock();
-                Block block4 = getCart().getLocation().add(0, -1, 1).getBlock();
-                Block block5 = getCart().getLocation().add(1, -1, -1).getBlock();
-                Block block6 = getCart().getLocation().add(1, 0, 0).getBlock();
-                Block block7 = getCart().getLocation().add(-1, 0, 0).getBlock();
-                Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
-                Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
-                if (SmartCart.util.isSign(block1)) executeEJT(passenger, block1);
-                if (SmartCart.util.isSign(block2)) executeEJT(passenger, block2);
-                if (SmartCart.util.isSign(block3)) executeEJT(passenger, block3);
-                if (SmartCart.util.isSign(block4)) executeEJT(passenger, block4);
-                if (SmartCart.util.isSign(block5)) executeEJT(passenger, block5);
-                if (SmartCart.util.isSign(block6)) executeEJT(passenger, block6);
-                if (SmartCart.util.isSign(block7)) executeEJT(passenger, block7);
-                if (SmartCart.util.isSign(block8)) executeEJT(passenger, block8);
-                if (SmartCart.util.isSign(block9)) executeEJT(passenger, block9);
+                Block[] blocks = {null, null, null, null, null, null, null, null, null};
+                SmartCart.util.helperFunction6(blocks, getCart().getLocation());
+                SmartCart.util.helperFunction7(this, blocks, passenger);
             }
             else setSpeed(0.1D);
         }
@@ -417,36 +385,16 @@ class SmartCartVehicle{
         return ret;
     }
 
-    private static void spawnCartInNewDirection(SmartCartVehicle oldCart, String direction){
-        Entity passenger = null;
-        if (!oldCart.cart.getPassengers().isEmpty()) {
-            passenger = oldCart.cart.getPassengers().get(0);
-        }
-        Block blockAhead = null;
-        Vector vector = new Vector(0, 0, 0);
-        switch (direction) {
-            case "N":
-                blockAhead = oldCart.cart.getLocation().add(0D, 0D, -1D).getBlock();
-                vector = new Vector(0, 0, -1);
-                break;
-            case "S":
-                blockAhead = oldCart.cart.getLocation().add(0D, 0D, 1D).getBlock();
-                vector = new Vector(0, 0, 1);
-                break;
-            case "E":
-                blockAhead = oldCart.cart.getLocation().add(1D, 0D, 0D).getBlock();
-                vector = new Vector(1, 0, 0);
-                break;
-            case "W":
-                blockAhead = oldCart.cart.getLocation().add(-1D, 0D, 0D).getBlock();
-                vector = new Vector(-1, 0, 0);
-                break;
-        }
-        if (SmartCart.util.isRail(blockAhead)) {
+    private void spawnCartInNewDirection(SmartCartVehicle oldCart, String direction){
+        Entity[] passenger = {null};
+        Block[] blockAhead = {null};
+        Vector[] vector = {new Vector(0, 0, 0)};
+        helperFunction1(oldCart, direction, blockAhead, vector, passenger);
+        if (SmartCart.util.isRail(blockAhead[0])) {
             oldCart.remove(true);
-            SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead);
-            newSC.getCart().addPassenger(passenger);
-            newSC.getCart().setVelocity(vector);
+            SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead[0]);
+            newSC.getCart().addPassenger(passenger[0]);
+            newSC.getCart().setVelocity(vector[0]);
             oldCart.transferSettings(newSC);
         }
     }
@@ -460,14 +408,7 @@ class SmartCartVehicle{
             if (pair.left().equals("$LNC"))
                 if (SmartCart.util.isSpawnBlock(getCart().getLocation().add(0, -1, 0).getBlock())) spawnCartInNewDirection(this, pair.right());
             if (pair.left().equals("$SPD")) {
-                p = Pattern.compile("^\\d*\\.?\\d+");
-                double minSpeed = 0D;
-                double maxSpeed = SmartCart.config.getDouble("max_cart_speed");
-                if (!p.matcher(pair.right()).find() || Double.parseDouble(pair.right()) > maxSpeed || Double.parseDouble(pair.right()) < minSpeed) {
-                    sendPassengerMessage("Bad speed value: \"" + pair.right() + "\". Must be a numeric value (decimals OK) between "
-                            + minSpeed + " and " + maxSpeed + ".", true);
-                    return;
-                }
+                if(!helperFunctionSPD(pair.right())) return;
                 configSpeed = Double.parseDouble(pair.right());
             }
             if(pair.left().equals("$LOCK")){
@@ -505,11 +446,6 @@ class SmartCartVehicle{
                 if (cart.getVelocity().getX() < 0) spawnCartInNewDirection(this, pair.right());
             if (pair.left().equals("$S"))
                 if (cart.getVelocity().getZ() > 0) spawnCartInNewDirection(this, pair.right());
-            if(pair.left().equals("$JMP")){
-                int y = Integer.parseInt(pair.right());
-                if(y < 1) y = 1;
-                cart.setVelocity(new Vector(cart.getVelocity().getX(), y, cart.getVelocity().getZ()));
-            }
             if(pair.left().equals("$HOLD")) {
                 if(SmartCart.util.isPoweredSign(block) && !doOnceSet){
                     setHeld(true);
@@ -528,67 +464,89 @@ class SmartCartVehicle{
             }
             if (pair.left().equals(tag) || pair.left().equals("$DEF")) {
                 // Skip this if we already found and used the endpoint
-                Entity passenger = null;
-                if (!cart.getPassengers().isEmpty()) passenger = cart.getPassengers().get(0);
-                if (foundEndpoint || passenger == null) return;
+                Entity[] passenger = {null};
+                Block[] blockAhead = {null};
+                Vector[] vector = {null};
+                helperFunction1(this, pair.right(), blockAhead, vector, passenger);
+                if(foundEndpoint || passenger[0] == null) return;
                 foundEndpoint = true;
-                Block blockAhead = null;
-                Vector vector = new Vector(0, 0, 0);
-                switch (pair.right()) {
-                    case "N":
-                        blockAhead = cart.getLocation().add(0D, 0D, -1D).getBlock();
-                        vector = new Vector(0, 0, -1);
-                        break;
-                    case "S":
-                        blockAhead = cart.getLocation().add(0D, 0D, 1D).getBlock();
-                        vector = new Vector(0, 0, 1);
-                        break;
-                    case "E":
-                        blockAhead = cart.getLocation().add(1D, 0D, 0D).getBlock();
-                        vector = new Vector(1, 0, 0);
-                        break;
-                    case "W":
-                        blockAhead = cart.getLocation().add(-1D, 0D, 0D).getBlock();
-                        vector = new Vector(-1, 0, 0);
-                        break;
-                }
-                if (SmartCart.util.isRail(blockAhead)) {
+                if (SmartCart.util.isRail(blockAhead[0])) {
                     remove(true);
-                    SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead);
-                    newSC.getCart().addPassenger(passenger);
-                    newSC.getCart().setVelocity(vector);
+                    SmartCartVehicle newSC = SmartCart.util.spawnCart(blockAhead[0]);
+                    newSC.getCart().addPassenger(passenger[0]);
+                    newSC.getCart().setVelocity(vector[0]);
                     transferSettings(newSC);
                 }
             }
         }
     }
 
-    private void executeEJT(Entity passenger, Block block){
+    void executeEJT(Entity passenger, Block block){
         Sign sign = (Sign) block.getState();
         for (Pair<String, String> pair : parseSign(sign)) {
             if (pair.left().equals("$EJT") && pair.right().length() >= 2) {
-                int dist = Integer.parseInt(pair.right().substring(1));
-                switch (pair.right().charAt(0)) {
-                    case 'N':
-                        passenger.teleport(passenger.getLocation().add(0, 0, -dist));
-                        break;
-                    case 'E':
-                        passenger.teleport(passenger.getLocation().add(dist, 0, 0));
-                        break;
-                    case 'S':
-                        passenger.teleport(passenger.getLocation().add(0, 0, dist));
-                        break;
-                    case 'W':
-                        passenger.teleport(passenger.getLocation().add(-dist, 0, 0));
-                        break;
-                    case 'U':
-                        passenger.teleport(passenger.getLocation().add(0, dist, 0));
-                        break;
-                    case 'D':
-                        passenger.teleport(passenger.getLocation().add(0, -dist, 0));
-                        break;
-                }
+                int dist = SmartCartUtil.isInteger(pair.right()) ? Integer.parseInt(pair.right().substring(1)) : 0;
+                helperFunctionEJT(pair.right(), passenger, dist);
             }
+        }
+    }
+
+    void helperFunction1(SmartCartVehicle oldCart, String direction, Block[] blockAhead, Vector[] vector, Entity[] passenger){
+        if (!oldCart.cart.isEmpty()) {
+            passenger[0] = oldCart.cart.getPassengers().get(0);
+        }
+        switch (direction) {
+            case "N":
+                blockAhead[0] = oldCart.cart.getLocation().add(0D, 0D, -1D).getBlock();
+                vector[0] = new Vector(0, 0, -1);
+                break;
+            case "S":
+                blockAhead[0] = oldCart.cart.getLocation().add(0D, 0D, 1D).getBlock();
+                vector[0] = new Vector(0, 0, 1);
+                break;
+            case "E":
+                blockAhead[0] = oldCart.cart.getLocation().add(1D, 0D, 0D).getBlock();
+                vector[0] = new Vector(1, 0, 0);
+                break;
+            case "W":
+                blockAhead[0] = oldCart.cart.getLocation().add(-1D, 0D, 0D).getBlock();
+                vector[0] = new Vector(-1, 0, 0);
+                break;
+        }
+    }
+
+    boolean helperFunctionSPD(String string){
+        Pattern p = Pattern.compile("^\\d*\\.?\\d+");
+        double minSpeed = 0D;
+        double maxSpeed = SmartCart.config.getDouble("max_cart_speed");
+        if (!p.matcher(string).find() || Double.parseDouble(string) > maxSpeed || Double.parseDouble(string) < minSpeed) {
+            sendPassengerMessage("Bad speed value: \"" + string + "\". Must be a numeric value (decimals OK) between "
+                    + minSpeed + " and " + maxSpeed + ".", true);
+            return false;
+        }
+        return true;
+    }
+
+    static void helperFunctionEJT(String string, Entity passenger, int dist){
+        switch (string.charAt(0)) {
+            case 'N':
+                passenger.teleport(passenger.getLocation().add(0, 0, -dist));
+                break;
+            case 'E':
+                passenger.teleport(passenger.getLocation().add(dist, 0, 0));
+                break;
+            case 'S':
+                passenger.teleport(passenger.getLocation().add(0, 0, dist));
+                break;
+            case 'W':
+                passenger.teleport(passenger.getLocation().add(-dist, 0, 0));
+                break;
+            case 'U':
+                passenger.teleport(passenger.getLocation().add(0, dist, 0));
+                break;
+            case 'D':
+                passenger.teleport(passenger.getLocation().add(0, -dist, 0));
+                break;
         }
     }
 }

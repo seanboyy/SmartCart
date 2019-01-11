@@ -27,6 +27,14 @@ import java.util.List;
 
 public class SmartCartListener implements Listener {
 
+    private enum Direction {
+        NORTH,
+        EAST,
+        SOUTH,
+        WEST,
+        NONE;
+    }
+
     private SmartCart plugin;
 
     SmartCartListener(SmartCart plugin) {
@@ -36,27 +44,25 @@ public class SmartCartListener implements Listener {
 
     @EventHandler
     public void onVehicleUpdate(VehicleUpdateEvent event) {
-        Vehicle vehicle = event.getVehicle();
-        // Return if vehicle is not a minecart
-        if (!(vehicle instanceof Minecart)) return;
-        SmartCartVehicle cart = SmartCart.util.getCartFromList(vehicle.getEntityId());
-        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
-        if(trainCart != null){
-            if(trainCart.isLeadCart())
-                plugin.getServer().getPluginManager().callEvent(new TrainUpdateEvent(SmartCart.util.getTrain(trainCart)));
+        SmartCartVehicle[] cart = {null};
+        SmartCartTrainVehicle[] trainCart = {null};
+        helperFunction5(event.getVehicle(), cart, trainCart);
+        if(trainCart[0] != null){
+            if(trainCart[0].isLeadCart())
+                plugin.getServer().getPluginManager().callEvent(new TrainUpdateEvent(SmartCart.util.getTrain(trainCart[0])));
         }
-        if(cart != null){
-            cart.saveCurrentLocation();
-            if (cart.getCart().getPassengers().isEmpty()) cart.setEmptyCartTimer();
-            else cart.resetEmptyCartTimer();
-            if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-            if(cart.getCart().isEmpty() || cart.getPassenger() != null && cart.getPassenger().getType() != EntityType.PLAYER) return;
-            if (cart.isNewBlock()) cart.readControlSign();
-            if (cart.isHeld()) cart.getCart().setVelocity(new Vector(0, 0, 0));
-            if (cart.isOnControlBlock()) cart.executeControl();
+        if(cart[0] != null){
+            cart[0].saveCurrentLocation();
+            if (cart[0].getCart().getPassengers().isEmpty()) cart[0].setEmptyCartTimer();
+            else cart[0].resetEmptyCartTimer();
+            if (cart[0].getCart().isDead() || cart[0].isNotOnRail()) return;
+            if(cart[0].getCart().isEmpty() || cart[0].getPassenger() != null && cart[0].getPassenger().getType() != EntityType.PLAYER) return;
+            if (cart[0].isNewBlock()) cart[0].readControlSign();
+            if (cart[0].isHeld()) cart[0].getCart().setVelocity(new Vector(0, 0, 0));
+            if (cart[0].isOnControlBlock()) cart[0].executeControl();
             else {
-                cart.setPreviousMaterial(null);
-                cart.setSpeed(cart.getConfigSpeed());
+                cart[0].setPreviousMaterial(null);
+                cart[0].setSpeed(cart[0].getConfigSpeed());
             }
         }
     }
@@ -89,19 +95,18 @@ public class SmartCartListener implements Listener {
 
     @EventHandler
     public void onVehicleExit(VehicleExitEvent event) {
-        Vehicle vehicle = event.getVehicle();
-        if (!(vehicle instanceof Minecart)) return;
-        SmartCartVehicle cart = SmartCart.util.getCartFromList(vehicle.getEntityId());
-        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
-        if(cart != null) {
-            if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-            if (cart.isLocked()) event.setCancelled(true);
+        SmartCartVehicle[] cart = {null};
+        SmartCartTrainVehicle[] trainCart = {null};
+        helperFunction5(event.getVehicle(), cart, trainCart);
+        if(cart[0] != null) {
+            if (cart[0].getCart().isDead() || cart[0].isNotOnRail()) return;
+            if (cart[0].isLocked()) event.setCancelled(true);
         }
-        if(trainCart != null){
-            if(trainCart.getCart().isDead() || trainCart.isNotOnRail()) return;
-            if(trainCart.isLocked()) event.setCancelled(true);
-            if(!trainCart.isLeadCart()) return;
-            SmartCartTrain train = SmartCart.util.getTrain(trainCart);
+        if(trainCart[0] != null){
+            if(trainCart[0].getCart().isDead() || trainCart[0].isNotOnRail()) return;
+            if(trainCart[0].isLocked()) event.setCancelled(true);
+            if(!trainCart[0].isLeadCart()) return;
+            SmartCartTrain train = SmartCart.util.getTrain(trainCart[0]);
             if(train.shouldKillTrain()){
                 train.leadCart.remove(true);
                 for(SmartCartTrainVehicle _trainVehicle : train.followCarts){
@@ -113,28 +118,12 @@ public class SmartCartListener implements Listener {
     }
 
     @EventHandler
-    public void onVehicleEnter(VehicleEnterEvent event) {
-        Vehicle vehicle = event.getVehicle();
-        // Return if vehicle is not a minecart
-        if (!(vehicle instanceof Minecart)) return;
-        // Return if it wasn't a player that entered
-        if (event.getEntered().getType() != EntityType.PLAYER) return;
-        /*
-        Why is this section necessary? Future use stuff?
-        SmartCartVehicle cart = SmartCart.util.getCartFromList((Minecart) vehicle);
-        // Return if minecart is marked for removal, or off rails for any reason
-        if (cart.getCart().isDead() || cart.isNotOnRail()) return;
-        */
-    }
-
-    @EventHandler
     public void onVehicleDestroyed(VehicleDestroyEvent event) {
-        Vehicle vehicle = event.getVehicle();
-        if(!(vehicle instanceof Minecart)) return;
-        SmartCartVehicle cart = SmartCart.util.getCartFromList(vehicle.getEntityId());
-        SmartCartTrainVehicle trainCart = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
-        if(cart != null) cart.remove(false);
-        if(trainCart != null) trainCart.remove(false);
+        SmartCartTrainVehicle[] trainCart = {null};
+        SmartCartVehicle[] cart = {null};
+        helperFunction5(event.getVehicle(), cart, trainCart);
+        if(cart[0] != null) cart[0].remove(false);
+        if(trainCart[0] != null) trainCart[0].remove(false);
     }
 
     @EventHandler
@@ -199,7 +188,6 @@ public class SmartCartListener implements Listener {
         //   Time to take action!
         if(spawnBlocks.size() > 0) {
             Block block = spawnBlocks.get(0).getLocation().add(0D, 1D, 0D).getBlock();
-
             // spawn a cart
             Minecart cart = SmartCart.util.spawnCart(block).getCart();
             if (cart == null) return;
@@ -210,54 +198,9 @@ public class SmartCartListener implements Listener {
                 if (entity instanceof Player && cart.getPassengers().isEmpty() && entity.getVehicle() == null) {
                     cart.addPassenger(entity);
                     SmartCartVehicle smartCart = SmartCart.util.getCartFromList(cart);
-                    boolean foundSignNearby = false;
                     ArrayList<Block> foundSign = new ArrayList<>();
-                    Block block1 = smartCart.getCart().getLocation().add(0, -2, 0).getBlock();
-                    Block block2 = smartCart.getCart().getLocation().add(1, -1, 0).getBlock();
-                    Block block3 = smartCart.getCart().getLocation().add(-1, -1, 0).getBlock();
-                    Block block4 = smartCart.getCart().getLocation().add(0, -1, 1).getBlock();
-                    Block block5 = smartCart.getCart().getLocation().add(1, -1, -1).getBlock();
-                    Block block6 = smartCart.getCart().getLocation().add(1, 0, 0).getBlock();
-                    Block block7 = smartCart.getCart().getLocation().add(-1, 0, 0).getBlock();
-                    Block block8 = smartCart.getCart().getLocation().add(0, 0, 1).getBlock();
-                    Block block9 = smartCart.getCart().getLocation().add(0, 0, -1).getBlock();
+                    boolean foundSignNearby = helperFunction3(foundSign, cart.getLocation().getBlock().getLocation());
                     // Return if we're not over a sign
-                    if (SmartCart.util.isSign(block1)) {
-                        foundSignNearby = true;
-                        foundSign.add(block1);
-                    }
-                    if (SmartCart.util.isSign(block2)) {
-                        foundSignNearby = true;
-                        foundSign.add(block2);
-                    }
-                    if (SmartCart.util.isSign(block3)) {
-                        foundSignNearby = true;
-                        foundSign.add(block3);
-                    }
-                    if (SmartCart.util.isSign(block4)) {
-                        foundSignNearby = true;
-                        foundSign.add(block4);
-                    }
-                    if (SmartCart.util.isSign(block5)) {
-                        foundSignNearby = true;
-                        foundSign.add(block5);
-                    }
-                    if (SmartCart.util.isSign(block6)) {
-                        foundSignNearby = true;
-                        foundSign.add(block6);
-                    }
-                    if (SmartCart.util.isSign(block7)) {
-                        foundSignNearby = true;
-                        foundSign.add(block7);
-                    }
-                    if (SmartCart.util.isSign(block8)) {
-                        foundSignNearby = true;
-                        foundSign.add(block8);
-                    }
-                    if (SmartCart.util.isSign(block9)) {
-                        foundSignNearby = true;
-                        foundSign.add(block9);
-                    }
                     if (foundSignNearby) {
                         for(Block sign : foundSign){
                             smartCart.executeSign(sign);
@@ -270,57 +213,11 @@ public class SmartCartListener implements Listener {
         if(trainSpawnBlocks.size() > 0){
             Block block = trainSpawnBlocks.get(0).getLocation().add(0D, 1D, 0D).getBlock();
             //read signs
-            boolean foundSignNearby = false;
             ArrayList<Block> foundSign = new ArrayList<>();
-            Block block1 = block.getLocation().add(0, -2, 0).getBlock();
-            Block block2 = block.getLocation().add(1, -1, 0).getBlock();
-            Block block3 = block.getLocation().add(-1, -1, 0).getBlock();
-            Block block4 = block.getLocation().add(0, -1, 1).getBlock();
-            Block block5 = block.getLocation().add(1, -1, -1).getBlock();
-            Block block6 = block.getLocation().add(1, 0, 0).getBlock();
-            Block block7 = block.getLocation().add(-1, 0, 0).getBlock();
-            Block block8 = block.getLocation().add(0, 0, 1).getBlock();
-            Block block9 = block.getLocation().add(0, 0, -1).getBlock();
-            // Return if we're not over a sign //why?
-            if (SmartCart.util.isSign(block1)) {
-                foundSignNearby = true;
-                foundSign.add(block1);
-            }
-            if (SmartCart.util.isSign(block2)) {
-                foundSignNearby = true;
-                foundSign.add(block2);
-            }
-            if (SmartCart.util.isSign(block3)) {
-                foundSignNearby = true;
-                foundSign.add(block3);
-            }
-            if (SmartCart.util.isSign(block4)) {
-                foundSignNearby = true;
-                foundSign.add(block4);
-            }
-            if (SmartCart.util.isSign(block5)) {
-                foundSignNearby = true;
-                foundSign.add(block5);
-            }
-            if (SmartCart.util.isSign(block6)) {
-                foundSignNearby = true;
-                foundSign.add(block6);
-            }
-            if (SmartCart.util.isSign(block7)) {
-                foundSignNearby = true;
-                foundSign.add(block7);
-            }
-            if (SmartCart.util.isSign(block8)) {
-                foundSignNearby = true;
-                foundSign.add(block8);
-            }
-            if (SmartCart.util.isSign(block9)) {
-                foundSignNearby = true;
-                foundSign.add(block9);
-            }
+            boolean foundSignNearby = helperFunction3(foundSign, block.getLocation());
             int numberOfCarts = 1;
             //find out how many carts to spawn
-            int goingDir = -1;
+            Direction goingDir = Direction.NONE;
             if (foundSignNearby) {
                 for(Block sign : foundSign){
                     Sign _sign = (Sign)sign.getState();
@@ -333,16 +230,16 @@ public class SmartCartListener implements Listener {
                             numberOfCarts = temp;
                             switch(pair.right().charAt(0)){
                                 case 'N':
-                                    goingDir = 2;
+                                    goingDir = Direction.SOUTH;
                                     break;
                                 case 'E':
-                                    goingDir = 3;
+                                    goingDir = Direction.WEST;
                                     break;
                                 case 'S':
-                                    goingDir = 0;
+                                    goingDir = Direction.NORTH;
                                     break;
                                 case 'W':
-                                    goingDir = 1;
+                                    goingDir = Direction.EAST;
                                     break;
                             }
                             break;
@@ -354,7 +251,11 @@ public class SmartCartListener implements Listener {
             //find out where to place the carts
             ArrayList<Location> trainPlaces = new ArrayList<>();
             trainPlaces.add(block.getLocation());
-            findNeighborRails(trainPlaces, block, null, numberOfCarts - 1, goingDir);
+            Direction _goingDir = goingDir;
+            Direction[] goingDirRef = new Direction[] {_goingDir};
+            Block[] railRef = new Block[] {block};
+            Block[] parentRef = new Block[] {null};
+            findNeighborRails(trainPlaces, railRef, parentRef, numberOfCarts - 1, goingDirRef);
             //place first cart
             SmartCartTrainVehicle trainCart = SmartCart.util.spawnTrainCart(trainPlaces.get(0).getBlock());
             if(trainCart.getCart() == null) return;
@@ -385,19 +286,19 @@ public class SmartCartListener implements Listener {
             }
             //move the train in the correct direction
             switch(goingDir){
-                case 0:
+                case NORTH:
                     //send train south
                     train.setVelocity(0, 1);
                     break;
-                case 1:
+                case EAST:
                     //send train west
                     train.setVelocity(-1, 0);
                     break;
-                case 2:
+                case SOUTH:
                     //send train north
                     train.setVelocity(0, -1);
                     break;
-                case 3:
+                case WEST:
                     //send train east
                     train.setVelocity(1, 0);
                     break;
@@ -405,362 +306,179 @@ public class SmartCartListener implements Listener {
         }
     }
 
-    /*
-        From Dir:
-        0 = north
-        1 = east
-        2 = south
-        3 = west
-     */
-    private void findNeighborRails(List<Location> locations, Block rail, Block parent, int num, int goingDir){
+    private void findNeighborRails(List<Location> locations, Block[] rail, Block[] parent, int num, Direction[] goingDir){
         if (num == 0) return;
-        //if parent goes north south, try going south first, then west, then east. If nothing is found, stop.
-        //if parent goes east west, try going south first, then west, then east. If nothing is found, stop.
-        //if parent goes north east
-        if(parent != null){
-            switch(goingDir){
+        if(parent[0] != null){
+            switch(goingDir[0]){
                 //north
-                case 0:
-                    switch(((Rail)rail.getBlockData()).getShape()){
+                case NORTH:
+                    switch(((Rail)rail[0].getBlockData()).getShape()){
                         case NORTH_SOUTH:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, -1));
-                                goingDir = 0;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, -1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, -1, goingDir, Direction.NORTH)) break;
                             else return;
-                            break;
                         case SOUTH_EAST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(1, 0, 0));
-                                goingDir = 1;
-                                parent = rail;
-                                rail = rail.getLocation().add(1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 1, 0, 0, goingDir, Direction.EAST)) break;
                             else return;
-                            break;
                         case SOUTH_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(-1, 0, 0));
-                                goingDir = 3;
-                                parent = rail;
-                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, -1, 0, 0, goingDir, Direction.WEST)) break;
                             else return;
-                            break;
                         case ASCENDING_NORTH:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 1, -1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 1, -1));
-                                goingDir = 0;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 1, -1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 1, -1, goingDir, Direction.NORTH)) break;
                             else return;
-                            break;
                         case ASCENDING_SOUTH:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, -1));
-                                goingDir = 0;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, -1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, -1, goingDir, Direction.NORTH)) break;
                             else return;
-                            break;
                     }
                     break;
                 //east
-                case 1:
-                    switch(((Rail)rail.getBlockData()).getShape()){
+                case EAST:
+                    switch(((Rail)rail[0].getBlockData()).getShape()){
                         case NORTH_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, -1));
-                                goingDir = 0;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, -1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, -1, goingDir, Direction.NORTH)) break;
                             else return;
-                            break;
                         case SOUTH_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, 1));
-                                goingDir = 2;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, 1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, 1, goingDir, Direction.SOUTH)) break;
                             else return;
-                            break;
                         case EAST_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(1, 0, 0));
-                                goingDir = 1;
-                                parent = rail;
-                                rail = rail.getLocation().add(1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 1, 0, 0, goingDir, Direction.EAST)) break;
                             else return;
-                            break;
                         case ASCENDING_EAST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(1, 1, 0).getBlock())){
-                                locations.add(rail.getLocation().add(1, 1, 0));
-                                goingDir = 1;
-                                parent = rail;
-                                rail = rail.getLocation().add(1, 1, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 1, 1, 0, goingDir, Direction.EAST)) break;
                             else return;
-                            break;
                         case ASCENDING_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(1, 0, 0));
-                                goingDir = 1;
-                                parent = rail;
-                                rail = rail.getLocation().add(1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 1, 1, 0, goingDir, Direction.EAST)) break;
                             else return;
-                            break;
                     }
                     break;
                 //south
-                case 2:
-                    switch(((Rail)rail.getBlockData()).getShape()){
+                case SOUTH:
+                    switch(((Rail)rail[0].getBlockData()).getShape()){
                         case NORTH_SOUTH:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, 1));
-                                goingDir = 2;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, 1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, 1, goingDir, Direction.SOUTH)) break;
                             else return;
-                            break;
                         case NORTH_EAST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(1, 0, 0));
-                                goingDir = 1;
-                                parent = rail;
-                                rail = rail.getLocation().add(1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 1, 0, 0, goingDir, Direction.EAST)) break;
                             else return;
-                            break;
                         case NORTH_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(-1, 0, 0));
-                                goingDir = 3;
-                                parent = rail;
-                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, -1, 0, 0, goingDir, Direction.WEST)) break;
                             else return;
-                            break;
                         case ASCENDING_NORTH:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, 1));
-                                goingDir = 2;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, 1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, 1, goingDir, Direction.SOUTH)) break;
                             else return;
-                            break;
                         case ASCENDING_SOUTH:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 1, 1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 1, 1));
-                                goingDir = 2;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 1, 1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 1, 1, goingDir, Direction.SOUTH)) break;
                             else return;
-                            break;
                     }
                     break;
                 //west
-                case 3:
-                    switch(((Rail)rail.getBlockData()).getShape()){
+                case WEST:
+                    switch(((Rail)rail[0].getBlockData()).getShape()){
                         case EAST_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(-1, 0, 0));
-                                goingDir = 3;
-                                parent = rail;
-                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, -1, 0, 0, goingDir, Direction.WEST)) break;
                             else return;
-                            break;
                         case SOUTH_EAST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, 1));
-                                goingDir = 2;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, 1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, 1, goingDir, Direction.SOUTH)) break;
                             else return;
-                            break;
                         case NORTH_EAST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                                locations.add(rail.getLocation().add(0, 0, -1));
-                                goingDir = 0;
-                                parent = rail;
-                                rail = rail.getLocation().add(0, 0, -1).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, 0, 0, -1, goingDir, Direction.NORTH)) break;
                             else return;
-                            break;
                         case ASCENDING_EAST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                                locations.add(rail.getLocation().add(-1, 0, 0));
-                                goingDir = 3;
-                                parent = rail;
-                                rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, -1, 0, 0, goingDir, Direction.WEST)) break;
                             else return;
-                            break;
                         case ASCENDING_WEST:
-                            if(SmartCart.util.isRail(rail.getLocation().add(-1, 1, 0).getBlock())){
-                                locations.add(rail.getLocation().add(-1, 1, 0));
-                                goingDir = 3;
-                                parent = rail;
-                                rail = rail.getLocation().add(-1, 1, 0).getBlock();
-                            }
+                            if(helperFunction1(locations, rail, parent, -1, 1, 0, goingDir, Direction.WEST)) break;
                             else return;
-                            break;
                     }
                     break;
             }
         }
         else{
-            switch(((Rail)rail.getBlockData()).getShape()){
+            switch(((Rail)rail[0].getBlockData()).getShape()){
                 case NORTH_SOUTH:
-                    //look south
-                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, 1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, 1).getBlock();
-                    }
-                    //otherwise look north
-                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, -1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, -1).getBlock();
-                    }
-                    //this is the only rail.
+                    if(helperFunction2(Direction.SOUTH, Direction.NORTH, locations, rail, parent, 0, 0, 1, 0, 0, -1, goingDir)) break;
                     else return;
-                    break;
                 case EAST_WEST:
-                    //look west
-                    if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(-1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                    }
-                    //look east
-                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(1, 0, 0).getBlock();
-                    }
-                    //this is the only rail
+                    if(helperFunction2(Direction.WEST, Direction.EAST, locations, rail, parent, -1, 0, 0, 1, 0, 0, goingDir)) break;
                     else return;
-                    break;
                 case NORTH_EAST:
-                    if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(1, 0, 0).getBlock();
-                    }
-                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, -1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, -1).getBlock();
-                    }
+                    if(helperFunction2(Direction.EAST, Direction.NORTH, locations, rail, parent, 1, 0, 0, 0, 0, -1, goingDir)) break;
                     else return;
-                    break;
                 case NORTH_WEST:
-                    if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(-1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                    }
-                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, -1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, -1).getBlock();
-                    }
+                    if(helperFunction2(Direction.WEST, Direction.NORTH, locations, rail, parent, -1, 0, 0, 0, 0, -1, goingDir)) break;
                     else return;
-                    break;
                 case SOUTH_EAST:
-                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, 1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, 1).getBlock();
-                    }
-                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(1, 0, 0).getBlock();
-                    }
+                    if(helperFunction2(Direction.SOUTH, Direction.EAST, locations, rail, parent, 0, 0, 1, 1, 0, 0, goingDir)) break;
                     else return;
-                    break;
                 case SOUTH_WEST:
-                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, 1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, 1).getBlock();
-                    }
-                    else if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(-1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                    }
+                    if(helperFunction2(Direction.SOUTH, Direction.WEST, locations, rail, parent, 0, 0, 1, -1, 0, 0, goingDir)) break;
                     else return;
-                    break;
                 case ASCENDING_EAST:
-                    if(SmartCart.util.isRail(rail.getLocation().add(-1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(-1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(-1, 0, 0).getBlock();
-                    }
-                    else if(SmartCart.util.isRail(rail.getLocation().add(1, 1, 0).getBlock())){
-                        locations.add(rail.getLocation().add(1, 1, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(1, 1, 0).getBlock();
-                    }
+                    if(helperFunction2(Direction.WEST, Direction.EAST, locations, rail, parent, -1, 0, 0, 1, 1, 0, goingDir)) break;
                     else return;
-                    break;
                 case ASCENDING_NORTH:
-                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 0, 1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, 1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, 1).getBlock();
-                    }
-                    else if(goingDir == 0 && SmartCart.util.isRail(rail.getLocation().add(0, 1, -1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 1, -1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 1, -1).getBlock();
-                    }
+                    if(helperFunction2(Direction.SOUTH, Direction.NORTH, locations, rail, parent, 0, 0, 1, 0, 1, -1, goingDir)) break;
                     else return;
-                    break;
                 case ASCENDING_WEST:
-                    if(goingDir == 3 && SmartCart.util.isRail(rail.getLocation().add(-1, 1, 0).getBlock())){
-                        locations.add(rail.getLocation().add(-1, 1, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(-1, 1, 0).getBlock();
-                    }
-                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(1, 0, 0).getBlock())){
-                        locations.add(rail.getLocation().add(1, 0, 0));
-                        parent = rail;
-                        rail = rail.getLocation().add(1, 0, 0).getBlock();
-                    }
+                    if(helperFunction2(Direction.WEST, Direction.EAST, locations, rail, parent, -1, 1, 0, 1, 0, 0, goingDir)) break;
                     else return;
-                    break;
                 case ASCENDING_SOUTH:
-                    if(goingDir == 2 && SmartCart.util.isRail(rail.getLocation().add(0, 1, 1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 1, 1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 1, 1).getBlock();
-                    }
-                    else if(goingDir == 1 && SmartCart.util.isRail(rail.getLocation().add(0, 0, -1).getBlock())){
-                        locations.add(rail.getLocation().add(0, 0, -1));
-                        parent = rail;
-                        rail = rail.getLocation().add(0, 0, -1).getBlock();
-                    }
+                    if(helperFunction2(Direction.SOUTH, Direction.NORTH, locations, rail, parent, 0, 1, 1, 0, 0, -1, goingDir)) break;
                     else return;
-                    break;
             }
         }
         findNeighborRails(locations, rail, parent, num - 1, goingDir);
+    }
+
+    private boolean helperFunction1(List<Location> locations, Block[] railRef, Block[] parentRef, int x, int y, int z, Direction[] goingDirRef, Direction newGoingDir){
+        if(SmartCart.util.isRail(railRef[0].getLocation().add(x, y, z).getBlock())){
+            locations.add(railRef[0].getLocation().add(x, y, z));
+            goingDirRef[0] = newGoingDir;
+            parentRef[0] = railRef[0];
+            railRef[0] = railRef[0].getLocation().add(x, y, z).getBlock();
+            return true;
+        }
+        return false;
+    }
+
+    private boolean helperFunction2(Direction goingDirOption1, Direction goingDirOption2, List<Location> locations, Block[] railRef, Block[] parentRef, int x1, int y1, int z1, int x2, int y2, int z2, Direction[] goingDirRef){
+        return (goingDirRef[0] == goingDirOption1 && helperFunction1(locations, railRef, parentRef, x1, y1, z1, goingDirRef, goingDirRef[0])) ||
+                (goingDirRef[0] == goingDirOption2 && helperFunction1(locations, railRef, parentRef, x2, y2, z2, goingDirRef, goingDirRef[0]));
+    }
+
+    private boolean helperFunction3(ArrayList<Block> signs, Location location){
+        boolean[] ret = {false};
+        Block block1 = location.add(0, -2, 0).getBlock();
+        Block block2 = location.add(1, -1, 0).getBlock();
+        Block block3 = location.add(-1, -1, 0).getBlock();
+        Block block4 = location.add(0, -1, 1).getBlock();
+        Block block5 = location.add(1, -1, -1).getBlock();
+        Block block6 = location.add(1, 0, 0).getBlock();
+        Block block7 = location.add(-1, 0, 0).getBlock();
+        Block block8 = location.add(0, 0, 1).getBlock();
+        Block block9 = location.add(0, 0, -1).getBlock();
+        helperFunction4(block1, signs, ret);
+        helperFunction4(block2, signs, ret);
+        helperFunction4(block3, signs, ret);
+        helperFunction4(block4, signs, ret);
+        helperFunction4(block5, signs, ret);
+        helperFunction4(block6, signs, ret);
+        helperFunction4(block7, signs, ret);
+        helperFunction4(block8, signs, ret);
+        helperFunction4(block9, signs, ret);
+        return ret[0];
+
+    }
+
+    private void helperFunction4(Block block, ArrayList<Block> signs, boolean[] foundSignRef){
+        if(SmartCart.util.isSign(block)){
+            signs.add(block);
+            foundSignRef[0] = true;
+        }
+    }
+
+    private void helperFunction5(Vehicle vehicle, SmartCartVehicle[] cart, SmartCartTrainVehicle[] trainCart){
+        if(!(vehicle instanceof Minecart)) return;
+        cart[0] = SmartCart.util.getCartFromList(vehicle.getEntityId());
+        trainCart[0] = SmartCart.util.getTrainCartFromList(vehicle.getEntityId());
     }
 }

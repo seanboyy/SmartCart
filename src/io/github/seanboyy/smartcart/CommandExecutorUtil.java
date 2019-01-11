@@ -15,7 +15,7 @@ import org.bukkit.entity.Entity;
 
 public class CommandExecutorUtil implements CommandExecutor {
 
-    SmartCart plugin;
+    private SmartCart plugin;
 
     CommandExecutorUtil(SmartCart plugin) {
         this.plugin = plugin;
@@ -25,6 +25,8 @@ public class CommandExecutorUtil implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         String commandHelp = "Usage:\n"
                 + "   /sc list [<world>]  -- List all minecarts (world optional)\n"
+                + "   /sc listtrain [<world>] -- List only minecarts in trains\n"
+                + "   /sc listgeneric [<world>] -- List only minecarts not in trains"
                 + "   /sc kill <id>  -- Destroy the specified minecart\n"
                 + "   /sc killall [<world>]  -- Destroy all minecarts (world optional)";
         String badWorld = "The world you specified does not exist.  Valid worlds are: "
@@ -45,7 +47,6 @@ public class CommandExecutorUtil implements CommandExecutor {
                         } else {
                             // Try to get the requested world
                             World world = Bukkit.getWorld(args[1]);
-                            // If the world specified doesn't exist, let them know
                             if (world == null) {
                                 SmartCart.util.sendMessage((Entity) sender, badWorld);
                                 return true;
@@ -143,14 +144,11 @@ public class CommandExecutorUtil implements CommandExecutor {
                             }
                             return true;
                         } else {
-                            // Try to get the requested world
                             World world = Bukkit.getWorld(args[1]);
-                            // If the world specified doesn't exist, let them know
                             if (world == null) {
                                 SmartCart.util.sendMessage((Entity) sender, badWorld);
                                 return true;
                             }
-                            // Since it does exist, remove the carts in it
                             SmartCart.util.sendMessage((Entity) sender, "Removing all carts in world: " + world.getName());
                             SmartCart.util.killCarts(SmartCart.util.getCartList(world));
                             for(SmartCartTrain train : SmartCart.util.getTrainList(world)){

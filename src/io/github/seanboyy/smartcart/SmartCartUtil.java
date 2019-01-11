@@ -241,119 +241,16 @@ class SmartCartUtil {
     }
 
     void sendFullCartList(ArrayList<SmartCartVehicle> cartList, ArrayList<SmartCartTrainVehicle> trainCartList, Entity entity){
-        int padID = 7;
-        int padWorld = 10;
-        int padLocation = 18;
-        int padPassenger = 20;
-        int padAge = 5;
-        String message = "\n" +
-                padRight("ID", padID) +
-                padRight("World", padWorld) +
-                padRight("Location", padLocation) +
-                padRight("Passenger", padPassenger) +
-                padRight("Age", padAge) +
-                "\n";
-        StringBuilder stringBuilder = new StringBuilder();
-        for (SmartCartVehicle cart : cartList) stringBuilder.
-                append(padRight(Integer.toString(cart.getEntityId()), padID)).
-                append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
-                append(padRight(getLocationString(cart.getLocation()), padLocation)).
-                append(padRight(cart.getPassengerName(), padPassenger)).
-                append(padRight(getAgeString(cart.getCart()), padAge)).
-                append("\n");
-        for (SmartCartTrainVehicle cart : trainCartList) stringBuilder.
-                append(padRight(Integer.toString(cart.getEntityId()), padID)).
-                append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
-                append(padRight(getLocationString(cart.getLocation()), padLocation)).
-                append(padRight(cart.getPassengerName(), padPassenger)).
-                append(padRight(getAgeString(cart.getCart()), padAge)).
-                append("\n");
-        message += stringBuilder.toString();
-        message += "Total: " + trainCartList.size() + cartList.size();
-        sendMessage(entity, message);
+        sendMessage(entity, helperFunction1(2, 7, 10, 18, 20, 5, 0, cartList, trainCartList));
     }
 
     // Send the provided list of carts to the provided entity
     void sendCartList(ArrayList<SmartCartVehicle> sendCartList, Entity entity) {
-        // These values are used to format the columns
-        int padID = 7;
-        int padWorld = 10;
-        int padLocation = 18;
-        int padPassenger = 20;
-        int padAge = 5;
-        String message = "\n"
-                + padRight("ID", padID)
-                + padRight("World", padWorld)
-                + padRight("Location", padLocation)
-                + padRight("Passenger", padPassenger)
-                + padRight("Age", padAge)
-                + "\n";
-        StringBuilder stringBuilder = new StringBuilder();
-        for (SmartCartVehicle cart : sendCartList) stringBuilder.
-                    append(padRight(Integer.toString(cart.getEntityId()), padID)).
-                    append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
-                    append(padRight(getLocationString(cart.getLocation()), padLocation)).
-                    append(padRight(cart.getPassengerName(), padPassenger)).
-                    append(padRight(getAgeString(cart.getCart()), padAge)).
-                    append("\n");
-        message += stringBuilder.toString();
-        message += "Total: " + sendCartList.size();
-        sendMessage(entity, message);
+        sendMessage(entity, helperFunction1(0, 7, 10, 18, 20, 5, 0, sendCartList, null));
     }
 
     void sendTrainCartList(ArrayList<SmartCartTrainVehicle> trainCartList, Entity entity){
-        int padID = 7;
-        int padWorld = 10;
-        int padLocation = 10;
-        int padPassenger = 18;
-        int padAge = 5;
-        int padIsLeadCart = 5;
-        String message = "\n"
-                + padRight("ID", padID)
-                + padRight("World", padWorld)
-                + padRight("Location", padLocation)
-                + padRight("Passenger", padPassenger)
-                + padRight("Age", padAge)
-                + padRight("Lead", padIsLeadCart)
-                + "\n";
-        StringBuilder stringBuilder = new StringBuilder();
-        for (SmartCartTrainVehicle cart : trainCartList) stringBuilder.
-                append(padRight(Integer.toString(cart.getEntityId()), padID)).
-                append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
-                append(padRight(getLocationString(cart.getLocation()), padLocation)).
-                append(padRight(cart.getPassengerName(), padPassenger)).
-                append(padRight(getAgeString(cart.getCart()), padAge)).
-                append(padRight(cart.isLeadCart() ? "Yes" : "No", padIsLeadCart)).
-                append("\n");
-        message += stringBuilder.toString();
-        message += "Total: " + trainCartList.size();
-        sendMessage(entity, message);
-    }
-
-    void sendCartList(ArrayList<SmartCartVehicle> sendCartList){
-        int padID = 7;
-        int padWorld = 10;
-        int padLocation = 18;
-        int padPassenger = 20;
-        int padAge = 5;
-        String message = "\n"
-                + padRight("ID", padID)
-                + padRight("World", padWorld)
-                + padRight("Location", padLocation)
-                + padRight("Passenger", padPassenger)
-                + padRight("Age", padAge)
-                + "\n";
-        StringBuilder stringBuilder = new StringBuilder();
-        for(SmartCartVehicle cart : sendCartList)
-            stringBuilder.append(padRight(Integer.toString(cart.getEntityId()), padID)).
-                    append(padRight(cart.getLocation().getWorld().getName(), padWorld)).
-                    append(padRight(getLocationString(cart.getLocation()), padLocation)).
-                    append(padRight(cart.getPassengerName(), padPassenger)).
-                    append(padRight(getAgeString(cart.getCart()), padAge)).
-                    append("\n");
-        message += stringBuilder.toString();
-        message += "Total: " + sendCartList.size();
-        SmartCart.logger.info(message);
+        sendMessage(entity, helperFunction1(1, 7, 10, 10, 18, 5, 5, null, trainCartList));
     }
 
     private static String padRight(String s, int n) {
@@ -450,5 +347,152 @@ class SmartCartUtil {
 
     boolean isPoweredSign(Block block){
         return isSign(block) && (block.isBlockPowered() || block.isBlockIndirectlyPowered());
+    }
+
+    private String helperFunction1(int mode, int padID, int padWorld, int padLocation, int padPassenger, int padAge, int padIsLeadCart, ArrayList<SmartCartVehicle> cartList, ArrayList<SmartCartTrainVehicle> trainCartList){
+        String ret = "";
+        StringBuilder stringBuilder = new StringBuilder();
+        switch(mode){
+            //generic
+            case 0:
+                ret += "\n" +
+                        padRight("ID", padID) +
+                        padRight("World", padWorld) +
+                        padRight("Location", padLocation) +
+                        padRight("Passenger", padPassenger) +
+                        padRight("Age", padAge) +
+                        "\n";
+                for(SmartCartVehicle cart : cartList)
+                    stringBuilder.append(helperFunction2(0, cart, padID, padWorld, padLocation, padPassenger, padAge, padIsLeadCart));
+                ret += stringBuilder.toString() + "Total: " + cartList.size();
+                return ret;
+            //train
+            case 1:
+                ret += "\n"
+                        + padRight("ID", padID)
+                        + padRight("World", padWorld)
+                        + padRight("Location", padLocation)
+                        + padRight("Passenger", padPassenger)
+                        + padRight("Age", padAge)
+                        + padRight("Lead", padIsLeadCart)
+                        + "\n";
+                for(SmartCartTrainVehicle cart : trainCartList)
+                    stringBuilder.append(helperFunction2(1, cart, padID, padWorld, padLocation, padPassenger, padAge, padIsLeadCart));
+                ret += stringBuilder.toString() + "Total: " + trainCartList.size();
+                return ret;
+            //both
+            case 2:
+                ret += "\n" +
+                        padRight("ID", padID) +
+                        padRight("World", padWorld) +
+                        padRight("Location", padLocation) +
+                        padRight("Passenger", padPassenger) +
+                        padRight("Age", padAge) +
+                        "\n";
+                for (SmartCartVehicle cart : cartList)
+                    stringBuilder.append(helperFunction2(0, cart, padID, padWorld, padLocation, padPassenger, padAge, padIsLeadCart));
+                for (SmartCartTrainVehicle cart : trainCartList)
+                    stringBuilder.append(helperFunction2(0, cart, padID, padWorld, padLocation, padPassenger, padAge, padIsLeadCart));
+                ret += stringBuilder.toString() + "Total: " + (cartList.size() + trainCartList.size());
+                return ret;
+        }
+        return "";
+    }
+
+    private String helperFunction2(int mode, SmartCartVehicle cart, int padID, int padWorld, int padLocation, int padPassenger, int padAge, int padLeadCart){
+        switch(mode){
+            case 0:
+                return helperFunction3(cart, padID, padWorld, padLocation, padPassenger, padAge) + "\n";
+            case 1:
+                return helperFunction3(cart, padID, padWorld, padLocation, padPassenger, padAge) +
+                        padRight(((SmartCartTrainVehicle)cart).isLeadCart() ? "Yes" : "No", padLeadCart) + "\n";
+        }
+        return "";
+    }
+
+    private String helperFunction3(SmartCartVehicle cart, int padID, int padWorld, int padLocation, int padPassenger, int padAge){
+        String ret = "";
+        ret += padRight(Integer.toString(cart.getEntityId()), padID) +
+                padRight(cart.getLocation().getWorld().getName(), padWorld) +
+                padRight(getLocationString(cart.getLocation()), padLocation) +
+                padRight(cart.getPassengerName(), padPassenger) +
+                padRight(getAgeString(cart.getCart()), padAge);
+        return ret;
+    }
+
+    void helperFunction5(Object context, Location location){
+        Block[] block = {null, null, null, null, null, null, null, null, null};
+        helperFunction6(block, location);
+        if(context instanceof SmartCartTrain){
+            if(SmartCart.util.isSign(block[0])) ((SmartCartTrain)context).executeSign(block[0]);
+            if(SmartCart.util.isSign(block[1])) ((SmartCartTrain)context).executeSign(block[1]);
+            if(SmartCart.util.isSign(block[2])) ((SmartCartTrain)context).executeSign(block[2]);
+            if(SmartCart.util.isSign(block[3])) ((SmartCartTrain)context).executeSign(block[3]);
+            if(SmartCart.util.isSign(block[4])) ((SmartCartTrain)context).executeSign(block[4]);
+            if(SmartCart.util.isSign(block[5])) ((SmartCartTrain)context).executeSign(block[5]);
+            if(SmartCart.util.isSign(block[6])) ((SmartCartTrain)context).executeSign(block[6]);
+            if(SmartCart.util.isSign(block[7])) ((SmartCartTrain)context).executeSign(block[7]);
+            if(SmartCart.util.isSign(block[8])) ((SmartCartTrain)context).executeSign(block[8]);
+        }
+        else if(context instanceof SmartCartTrainVehicle){
+            if(SmartCart.util.isSign(block[0])) ((SmartCartTrainVehicle)context).executeSign(block[0]);
+            if(SmartCart.util.isSign(block[1])) ((SmartCartTrainVehicle)context).executeSign(block[1]);
+            if(SmartCart.util.isSign(block[2])) ((SmartCartTrainVehicle)context).executeSign(block[2]);
+            if(SmartCart.util.isSign(block[3])) ((SmartCartTrainVehicle)context).executeSign(block[3]);
+            if(SmartCart.util.isSign(block[4])) ((SmartCartTrainVehicle)context).executeSign(block[4]);
+            if(SmartCart.util.isSign(block[5])) ((SmartCartTrainVehicle)context).executeSign(block[5]);
+            if(SmartCart.util.isSign(block[6])) ((SmartCartTrainVehicle)context).executeSign(block[6]);
+            if(SmartCart.util.isSign(block[7])) ((SmartCartTrainVehicle)context).executeSign(block[7]);
+            if(SmartCart.util.isSign(block[8])) ((SmartCartTrainVehicle)context).executeSign(block[8]);
+        }
+        else if(context instanceof SmartCartVehicle){
+            if(SmartCart.util.isSign(block[0])) ((SmartCartVehicle)context).executeSign(block[0]);
+            if(SmartCart.util.isSign(block[1])) ((SmartCartVehicle)context).executeSign(block[1]);
+            if(SmartCart.util.isSign(block[2])) ((SmartCartVehicle)context).executeSign(block[2]);
+            if(SmartCart.util.isSign(block[3])) ((SmartCartVehicle)context).executeSign(block[3]);
+            if(SmartCart.util.isSign(block[4])) ((SmartCartVehicle)context).executeSign(block[4]);
+            if(SmartCart.util.isSign(block[5])) ((SmartCartVehicle)context).executeSign(block[5]);
+            if(SmartCart.util.isSign(block[6])) ((SmartCartVehicle)context).executeSign(block[6]);
+            if(SmartCart.util.isSign(block[7])) ((SmartCartVehicle)context).executeSign(block[7]);
+            if(SmartCart.util.isSign(block[8])) ((SmartCartVehicle)context).executeSign(block[8]);
+
+        }
+    }
+
+    void helperFunction6(Block[] block, Location location){
+       block[0] = location.add(0, -2, 0).getBlock();
+       block[1] = location.add(1, -1, 0).getBlock();
+       block[2] = location.add(-1, -1, 0).getBlock();
+       block[3] = location.add(0, -1, 1).getBlock();
+       block[4] = location.add(1, -1, -1).getBlock();
+       block[5] = location.add(1, 0, 0).getBlock();
+       block[6] = location.add(-1, 0, 0).getBlock();
+       block[7] = location.add(0, 0, 1).getBlock();
+       block[8] = location.add(0, 0, -1).getBlock();
+    }
+
+    void helperFunction7(Object context, Block[] blocks, Entity passenger){
+        if(context instanceof SmartCartTrain){
+            if (SmartCart.util.isSign(blocks[0])) ((SmartCartTrain)context).executeEJT(blocks[0]);
+            if (SmartCart.util.isSign(blocks[1])) ((SmartCartTrain)context).executeEJT(blocks[1]);
+            if (SmartCart.util.isSign(blocks[2])) ((SmartCartTrain)context).executeEJT(blocks[2]);
+            if (SmartCart.util.isSign(blocks[3])) ((SmartCartTrain)context).executeEJT(blocks[3]);
+            if (SmartCart.util.isSign(blocks[4])) ((SmartCartTrain)context).executeEJT(blocks[4]);
+            if (SmartCart.util.isSign(blocks[5])) ((SmartCartTrain)context).executeEJT(blocks[5]);
+            if (SmartCart.util.isSign(blocks[6])) ((SmartCartTrain)context).executeEJT(blocks[6]);
+            if (SmartCart.util.isSign(blocks[7])) ((SmartCartTrain)context).executeEJT(blocks[7]);
+            if (SmartCart.util.isSign(blocks[8])) ((SmartCartTrain)context).executeEJT(blocks[8]);
+        }
+        else if(context instanceof SmartCartVehicle){
+            if (SmartCart.util.isSign(blocks[0])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[0]);
+            if (SmartCart.util.isSign(blocks[1])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[1]);
+            if (SmartCart.util.isSign(blocks[2])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[2]);
+            if (SmartCart.util.isSign(blocks[3])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[3]);
+            if (SmartCart.util.isSign(blocks[4])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[4]);
+            if (SmartCart.util.isSign(blocks[5])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[5]);
+            if (SmartCart.util.isSign(blocks[6])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[6]);
+            if (SmartCart.util.isSign(blocks[7])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[7]);
+            if (SmartCart.util.isSign(blocks[8])) ((SmartCartVehicle)context).executeEJT(passenger, blocks[8]);
+        }
     }
 }

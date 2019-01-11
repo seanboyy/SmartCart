@@ -101,13 +101,13 @@ class SmartCartTrainVehicle extends SmartCartVehicle {
                 }
             }
             if (pair.left().equals("$N"))
-                if (cart.getVelocity().getZ() < 0) spawnCartInNewDirection(this, pair.right());
+                if (cart.getVelocity().getZ() < 0) spawnTrainCartInNewDirection(this, pair.right());
             if (pair.left().equals("$E"))
-                if (cart.getVelocity().getX() > 0) spawnCartInNewDirection(this, pair.right());
+                if (cart.getVelocity().getX() > 0) spawnTrainCartInNewDirection(this, pair.right());
             if (pair.left().equals("$W"))
-                if (cart.getVelocity().getX() < 0) spawnCartInNewDirection(this, pair.right());
+                if (cart.getVelocity().getX() < 0) spawnTrainCartInNewDirection(this, pair.right());
             if (pair.left().equals("$S"))
-                if (cart.getVelocity().getZ() > 0) spawnCartInNewDirection(this, pair.right());
+                if (cart.getVelocity().getZ() > 0) spawnTrainCartInNewDirection(this, pair.right());
         }
         if(leadCart) SmartCart.util.getTrain(this).executeSign(block);
     }
@@ -120,24 +120,7 @@ class SmartCartTrainVehicle extends SmartCartVehicle {
     @Override
     void readControlSign(){
         if(!leadCart) {
-            Block block1 = getCart().getLocation().add(0, -2, 0).getBlock();
-            Block block2 = getCart().getLocation().add(1, -1, 0).getBlock();
-            Block block3 = getCart().getLocation().add(-1, -1, 0).getBlock();
-            Block block4 = getCart().getLocation().add(0, -1, 1).getBlock();
-            Block block5 = getCart().getLocation().add(1, -1, -1).getBlock();
-            Block block6 = getCart().getLocation().add(1, 0, 0).getBlock();
-            Block block7 = getCart().getLocation().add(-1, 0, 0).getBlock();
-            Block block8 = getCart().getLocation().add(0, 0, 1).getBlock();
-            Block block9 = getCart().getLocation().add(0, 0, -1).getBlock();
-            if (SmartCart.util.isSign(block1)) executeSign(block1);
-            if (SmartCart.util.isSign(block2)) executeSign(block2);
-            if (SmartCart.util.isSign(block3)) executeSign(block3);
-            if (SmartCart.util.isSign(block4)) executeSign(block4);
-            if (SmartCart.util.isSign(block5)) executeSign(block5);
-            if (SmartCart.util.isSign(block6)) executeSign(block6);
-            if (SmartCart.util.isSign(block7)) executeSign(block7);
-            if (SmartCart.util.isSign(block8)) executeSign(block8);
-            if (SmartCart.util.isSign(block9)) executeSign(block9);
+            SmartCart.util.helperFunction5(this, getCart().getLocation());
         }
     }
 
@@ -157,36 +140,16 @@ class SmartCartTrainVehicle extends SmartCartVehicle {
         }
     }
 
-    private static void spawnCartInNewDirection(SmartCartTrainVehicle oldCart, String direction){
-        Entity passenger = null;
-        if (!oldCart.cart.getPassengers().isEmpty()) {
-            passenger = oldCart.cart.getPassengers().get(0);
-        }
-        Block blockAhead = null;
-        Vector vector = new Vector(0, 0, 0);
-        switch (direction) {
-            case "N":
-                blockAhead = oldCart.cart.getLocation().add(0D, 0D, -1D).getBlock();
-                vector = new Vector(0, 0, -1);
-                break;
-            case "S":
-                blockAhead = oldCart.cart.getLocation().add(0D, 0D, 1D).getBlock();
-                vector = new Vector(0, 0, 1);
-                break;
-            case "E":
-                blockAhead = oldCart.cart.getLocation().add(1D, 0D, 0D).getBlock();
-                vector = new Vector(1, 0, 0);
-                break;
-            case "W":
-                blockAhead = oldCart.cart.getLocation().add(-1D, 0D, 0D).getBlock();
-                vector = new Vector(-1, 0, 0);
-                break;
-        }
-        if (SmartCart.util.isRail(blockAhead)) {
+    private void spawnTrainCartInNewDirection(SmartCartTrainVehicle oldCart, String direction){
+        Block[] blockAhead = {null};
+        Vector[] vector = {new Vector(0, 0, 0)};
+        Entity[] passenger = {null};
+        helperFunction1(oldCart, direction, blockAhead, vector, passenger);
+        if (SmartCart.util.isRail(blockAhead[0])) {
             oldCart.remove(true);
-            SmartCartTrainVehicle newSC = SmartCart.util.spawnTrainCart(blockAhead);
-            newSC.getCart().addPassenger(passenger);
-            newSC.getCart().setVelocity(vector);
+            SmartCartTrainVehicle newSC = SmartCart.util.spawnTrainCart(blockAhead[0]);
+            newSC.getCart().addPassenger(passenger[0]);
+            newSC.getCart().setVelocity(vector[0]);
             oldCart.transferSettings(newSC);
         }
     }
