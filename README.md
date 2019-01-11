@@ -93,7 +93,7 @@ The following config.yml options are available:
 | kill_block_material | "YELLOW_WOOL" | A block with this material will kill carts |
 | slow_block_material | "ORANGE_WOOL" | A block with this material will slow carts |
 | spawn_block_material | "BLACK_WOOL" | A block with this material will spawn carts once a redstone signal is applied |
-| train_spawn_block_material | "GRAY_WOOL" | A block with this material will spawn a series of carts in a line, according to a sign below it. If no sign is present, just spawns one cart. Uses redstone to activate |
+| train_spawn_block_material | "GRAY_WOOL" | A block with this material will spawn a series of carts in a line, according to a sign below it. Uses redstone to activate |
 | max_train_length | 10 | $AMT signs with values greater than this will instead produce this many carts |
 | empty_cart_timer | 10 | Number of seconds before an empty cart will despawn |
 | empty_cart_timer_ignore_storagemincart | true | empty_cart_timer is ignored for storage carts if true |
