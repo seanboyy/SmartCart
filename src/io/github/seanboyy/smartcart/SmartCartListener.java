@@ -131,8 +131,18 @@ public class SmartCartListener implements Listener {
         if (event.getOldCurrent() > event.getNewCurrent()){
             if(event.getNewCurrent() != 0) return;
             int search_radius = 1;
-            ArrayList<Block> signs = SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.SIGN);
-            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.WALL_SIGN));
+            ArrayList<Block> signs = SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.OAK_SIGN);
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.OAK_WALL_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.ACACIA_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.ACACIA_WALL_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.DARK_OAK_WALL_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.DARK_OAK_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BIRCH_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.BIRCH_WALL_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.SPRUCE_WALL_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.SPRUCE_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.JUNGLE_WALL_SIGN));
+            signs.addAll(SmartCart.util.getBlocksNearby(event.getBlock(), search_radius, Material.JUNGLE_SIGN));
             if(signs.size() ==0) return;
             for (Block block : signs) {
                 ArrayList<Block> cartLocations = SmartCart.util.getBlocksNearby(block, search_radius, Material.RAIL);

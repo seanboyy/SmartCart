@@ -342,7 +342,18 @@ class SmartCartUtil {
     }
 
     boolean isSign(Block block){
-        return block.getType() == Material.SIGN || block.getType() == Material.WALL_SIGN;
+        return block.getType() == Material.OAK_SIGN
+                || block.getType() == Material.OAK_WALL_SIGN
+                || block.getType() == Material.ACACIA_SIGN
+                || block.getType() == Material.ACACIA_WALL_SIGN
+                || block.getType() == Material.DARK_OAK_SIGN
+                || block.getType() == Material.DARK_OAK_WALL_SIGN
+                || block.getType() == Material.SPRUCE_SIGN
+                || block.getType() == Material.SPRUCE_WALL_SIGN
+                || block.getType() == Material.BIRCH_SIGN
+                || block.getType() == Material.BIRCH_WALL_SIGN
+                || block.getType() == Material.JUNGLE_SIGN
+                || block.getType() == Material.JUNGLE_WALL_SIGN;
     }
 
     boolean isPoweredSign(Block block){
